@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useGenerationStore } from '../../stores/generationStore';
 import type { GeneratedRoom } from '../../types';
 
@@ -18,7 +19,7 @@ interface PreviewCanvasProps {
 
 export function PreviewCanvas({ width = 400, height = 300 }: PreviewCanvasProps): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { lastResult } = useGenerationStore();
+  const lastResult = useGenerationStore(useShallow((state) => state.lastResult));
 
   useEffect(() => {
     const canvas = canvasRef.current;

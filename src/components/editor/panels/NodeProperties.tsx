@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '../../../stores/projectStore';
 import { useEditorStore } from '../../../stores/editorStore';
 import { Input } from '../../ui/Input';
@@ -7,7 +8,7 @@ import { Select } from '../../ui/Select';
 import { Button } from '../../ui/Button';
 
 export function NodePropertiesPanel(): React.ReactElement | null {
-  const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
+  const selectedNodeIds = useEditorStore(useShallow((state) => state.selectedNodeIds));
   const propertiesPanelOpen = useEditorStore((state) => state.propertiesPanelOpen);
   const togglePropertiesPanel = useEditorStore((state) => state.togglePropertiesPanel);
 

@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Trash2,
 } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '../../stores/projectStore';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
@@ -57,7 +58,7 @@ const NODE_CATEGORIES = [
 
 export function Sidebar(): React.ReactElement {
   const project = useProjectStore((state) => state.project);
-  const generators = useProjectStore((state) => state.project?.generators ?? []);
+  const generators = useProjectStore(useShallow((state) => state.project?.generators ?? []))
   const activeGeneratorId = useProjectStore((state) => state.activeGeneratorId);
   const addGenerator = useProjectStore((state) => state.addGenerator);
   const removeGenerator = useProjectStore((state) => state.removeGenerator);
@@ -97,7 +98,7 @@ export function Sidebar(): React.ReactElement {
             {project?.name || 'No Project'}
           </span>
         </div>
-        
+
         {/* Generators List */}
         <div className="space-y-1">
           {generators.map((gen) => (
@@ -124,7 +125,7 @@ export function Sidebar(): React.ReactElement {
               </button>
             </div>
           ))}
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -142,7 +143,7 @@ export function Sidebar(): React.ReactElement {
         <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
           Node Palette
         </h3>
-        
+
         <div className="space-y-2">
           {NODE_CATEGORIES.map((category) => (
             <div key={category.name}>
@@ -158,7 +159,7 @@ export function Sidebar(): React.ReactElement {
                 <category.icon size={14} />
                 <span className="text-sm font-medium">{category.name}</span>
               </button>
-              
+
               {expandedCategories.includes(category.name) && (
                 <div className="ml-4 mt-1 space-y-1">
                   {category.nodes.map((node) => (
