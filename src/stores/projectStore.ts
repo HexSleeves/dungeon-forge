@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import type { Project, Generator, GraphNode, Edge, NodeType, Position, Constraint } from '../types';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from '../lib/invoke';
 
 // History entry for undo/redo
 interface HistoryEntry {

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -17,6 +17,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { nodeTypes } from './nodes';
+import { NodeContextMenu } from './NodeContextMenu';
 import { useProjectStore } from '../../stores/projectStore';
 import { useEditorStore } from '../../stores/editorStore';
 import type { NodeType, GraphNode } from '../../types';
@@ -49,8 +50,15 @@ function toReactFlowEdge(edge: import('../../types').Edge): Edge {
   };
 }
 
+interface ContextMenuState {
+  nodeId: string;
+  x: number;
+  y: number;
+}
+
 export function NodeEditor(): React.ReactElement {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
   const activeGeneratorId = useProjectStore((state) => state.activeGeneratorId);
   const project = useProjectStore((state) => state.project);
@@ -165,6 +173,34 @@ export function NodeEditor(): React.ReactElement {
     [selectNodes, selectEdges]
   );
 
+  // Handle node click for single selection
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      selectNodes([node.id]);
+      setContextMenu(null); // Close context menu on click
+    },
+    [selectNodes]
+  );
+
+  // Handle node context menu (right-click)
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      event.preventDefault();
+      selectNodes([node.id]);
+      setContextMenu({
+        nodeId: node.id,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    [selectNodes]
+  );
+
+  // Handle pane click to close context menu
+  const onPaneClick = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
   if (!activeGenerator) {
     return (
       <div className="flex-1 flex items-center justify-center bg-bg-primary">
@@ -187,6 +223,9 @@ export function NodeEditor(): React.ReactElement {
         onDragOver={onDragOver}
         onDrop={onDrop}
         onSelectionChange={onSelectionChange}
+        onNodeClick={onNodeClick}
+        onNodeContextMenu={onNodeContextMenu}
+        onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         fitView
         snapToGrid
@@ -194,7 +233,9 @@ export function NodeEditor(): React.ReactElement {
         defaultEdgeOptions={{
           type: 'smoothstep',
           style: { strokeWidth: 2, stroke: '#3b82f6' },
+          animated: true,
         }}
+        connectionLineStyle={{ strokeWidth: 2, stroke: '#60a5fa' }}
         proOptions={{ hideAttribution: true }}
       >
         <Background
@@ -227,6 +268,16 @@ export function NodeEditor(): React.ReactElement {
           maskColor="rgba(15, 23, 42, 0.8)"
         />
       </ReactFlow>
+      
+      {/* Context Menu */}
+      {contextMenu && (
+        <NodeContextMenu
+          nodeId={contextMenu.nodeId}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 }

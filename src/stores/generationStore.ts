@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from '../lib/invoke';
 import type { GenerationResult, SimulationConfig, SimulationResults } from '../types';
 
 interface GenerationState {
