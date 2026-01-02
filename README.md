@@ -17,6 +17,10 @@ A Tauri + React + Rust desktop application for procedural dungeon generation.
 - [x] Custom node components with ports
 - [x] Preview panel with canvas-based dungeon rendering
 - [x] Generation engine in Rust (basic procedural dungeon generation)
+- [x] Browser-compatible mock Tauri backend for development
+- [x] Node context menu (right-click) with Edit, Duplicate, Delete options
+- [x] Node selection updates Properties panel
+- [x] Animated edge connections
 
 ### Known Issues
 - React 19 + Zustand selector caching issues (use `useShallow` for array/object selectors)
@@ -33,18 +37,29 @@ A Tauri + React + Rust desktop application for procedural dungeon generation.
 # Install dependencies
 pnpm install
 
-# Run development server
+# Run development server (browser-only with mock backend)
 pnpm dev
 
 # Build for production
 pnpm build
 
-# Run Tauri development
+# Run Tauri development (full desktop app with Rust backend)
 pnpm tauri dev
 
 # Build Tauri app
 pnpm tauri build
 ```
+
+### Browser Mode
+
+When running `pnpm dev`, the app runs in browser mode with a mock Tauri backend.
+This allows UI development without compiling the Rust backend. The mock backend:
+
+- Generates procedural dungeons with rooms, connections, and spawn points
+- Supports the same API as the real Tauri backend
+- Uses localStorage for project persistence (limited)
+
+To run the full Tauri app with the Rust backend, use `pnpm tauri dev`.
 
 ## Project Structure
 
