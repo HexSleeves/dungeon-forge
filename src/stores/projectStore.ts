@@ -164,17 +164,43 @@ const getDefaultNodeData = (type: NodeType): GraphNode['data'] => {
         ...base,
         weights: [0.5, 0.5],
       };
+    case 'merge':
+      return {
+        ...base,
+        strategy: 'all',
+      };
     case 'spawn_point':
       return {
         ...base,
         entityType: 'enemy',
         countRange: { min: 1, max: 3 },
+        spawnRadius: 2,
       };
     case 'loot_drop':
       return {
         ...base,
         lootTable: 'default',
         dropChance: 1.0,
+        itemCount: { min: 1, max: 3 },
+      };
+    case 'encounter':
+      return {
+        ...base,
+        encounterType: 'combat',
+        difficulty: 'medium',
+        enemyCount: { min: 1, max: 4 },
+        rewardOnComplete: true,
+      };
+    case 'start':
+      return {
+        ...base,
+        spawnArea: 'center',
+      };
+    case 'output':
+      return {
+        ...base,
+        exitType: 'stairs',
+        requiresKey: false,
       };
     default:
       return base;

@@ -1,11 +1,104 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Plus, Minus } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '../../../stores/projectStore';
 import { useEditorStore } from '../../../stores/editorStore';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
 import { Button } from '../../ui/Button';
+import { Tooltip } from '../../ui/Tooltip';
+
+// Branch weights editor with visual sliders
+function BranchWeightsEditor({
+  weights,
+  onChange,
+}: {
+  weights: number[];
+  onChange: (weights: number[]) => void;
+}): React.ReactElement {
+  const addPath = () => {
+    const newWeight = 1 / (weights.length + 1);
+    const normalizedWeights = weights.map((w) => w * (1 - newWeight));
+    onChange([...normalizedWeights, newWeight]);
+  };
+
+  const removePath = (index: number) => {
+    if (weights.length <= 2) return;
+    const newWeights = weights.filter((_, i) => i !== index);
+    const sum = newWeights.reduce((a, b) => a + b, 0);
+    onChange(newWeights.map((w) => w / sum));
+  };
+
+  const updateWeight = (index: number, value: number) => {
+    const newWeights = [...weights];
+    newWeights[index] = value / 100;
+    // Normalize so they sum to 1
+    const sum = newWeights.reduce((a, b) => a + b, 0);
+    onChange(newWeights.map((w) => w / sum));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-text-secondary">Path Weights</label>
+        <button
+          onClick={addPath}
+          className="p-1 rounded hover:bg-bg-tertiary text-text-muted hover:text-text-primary"
+          title="Add path"
+        >
+          <Plus size={14} />
+        </button>
+      </div>
+      <p className="text-xs text-text-muted">
+        Probability of taking each path. Values are normalized to sum to 100%.
+      </p>
+      <div className="space-y-2">
+        {weights.map((weight, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <span className="text-xs text-text-muted w-12">Path {index + 1}</span>
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={Math.round(weight * 100)}
+              onChange={(e) => updateWeight(index, parseInt(e.target.value))}
+              className="flex-1 accent-accent-primary"
+            />
+            <span className="text-xs text-text-secondary w-10 text-right">
+              {Math.round(weight * 100)}%
+            </span>
+            {weights.length > 2 && (
+              <button
+                onClick={() => removePath(index)}
+                className="p-1 rounded hover:bg-red-500/20 text-text-muted hover:text-red-400"
+                title="Remove path"
+              >
+                <Minus size={12} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* Visual representation */}
+      <div className="flex h-2 rounded-full overflow-hidden bg-bg-tertiary">
+        {weights.map((weight, index) => {
+          const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#22c55e', '#ef4444'];
+          return (
+            <div
+              key={index}
+              style={{
+                width: `${weight * 100}%`,
+                backgroundColor: colors[index % colors.length],
+              }}
+              className="transition-all duration-200"
+              title={`Path ${index + 1}: ${Math.round(weight * 100)}%`}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function NodePropertiesPanel(): React.ReactElement | null {
   const selectedNodeIds = useEditorStore(useShallow((state) => state.selectedNodeIds));
@@ -224,6 +317,243 @@ export function NodePropertiesPanel(): React.ReactElement | null {
                     })
                   }
                 />
+              </div>
+              <Input
+                label="Spawn Radius"
+                type="number"
+                value={(selectedNode.data.spawnRadius as number) ?? 2}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { spawnRadius: parseInt(e.target.value) || 2 })
+                }
+              />
+            </>
+          )}
+
+          {/* Branch Node Properties */}
+          {selectedNode.type === 'branch' && (
+            <BranchWeightsEditor
+              weights={(selectedNode.data.weights as number[]) ?? [0.5, 0.5]}
+              onChange={(weights) => updateNode(selectedNode.id, { weights })}
+            />
+          )}
+
+          {/* Merge Node Properties */}
+          {selectedNode.type === 'merge' && (
+            <>
+              <Select
+                label="Merge Strategy"
+                value={(selectedNode.data.strategy as string) ?? 'all'}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { strategy: e.target.value })
+                }
+                options={[
+                  { value: 'all', label: 'Wait for All' },
+                  { value: 'any', label: 'Continue on Any' },
+                  { value: 'first', label: 'First to Complete' },
+                ]}
+              />
+              <p className="text-xs text-text-muted">
+                Determines how paths are combined when multiple branches converge.
+              </p>
+            </>
+          )}
+
+          {/* Loot Drop Node Properties */}
+          {selectedNode.type === 'loot_drop' && (
+            <>
+              <Select
+                label="Loot Table"
+                value={(selectedNode.data.lootTable as string) ?? 'default'}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { lootTable: e.target.value })
+                }
+                options={[
+                  { value: 'default', label: 'Default' },
+                  { value: 'common', label: 'Common' },
+                  { value: 'uncommon', label: 'Uncommon' },
+                  { value: 'rare', label: 'Rare' },
+                  { value: 'legendary', label: 'Legendary' },
+                  { value: 'boss', label: 'Boss Loot' },
+                ]}
+              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-text-secondary">Drop Chance</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={((selectedNode.data.dropChance as number) ?? 1) * 100}
+                    onChange={(e) =>
+                      updateNode(selectedNode.id, { dropChance: parseInt(e.target.value) / 100 })
+                    }
+                    className="flex-1 accent-accent-primary"
+                  />
+                  <span className="text-sm text-text-secondary w-12 text-right">
+                    {Math.round(((selectedNode.data.dropChance as number) ?? 1) * 100)}%
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  label="Min Items"
+                  type="number"
+                  value={(selectedNode.data.itemCount as any)?.min ?? 1}
+                  onChange={(e) =>
+                    updateNode(selectedNode.id, {
+                      itemCount: {
+                        ...(selectedNode.data.itemCount as any),
+                        min: parseInt(e.target.value) || 1,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  label="Max Items"
+                  type="number"
+                  value={(selectedNode.data.itemCount as any)?.max ?? 3}
+                  onChange={(e) =>
+                    updateNode(selectedNode.id, {
+                      itemCount: {
+                        ...(selectedNode.data.itemCount as any),
+                        max: parseInt(e.target.value) || 3,
+                      },
+                    })
+                  }
+                />
+              </div>
+            </>
+          )}
+
+          {/* Encounter Node Properties */}
+          {selectedNode.type === 'encounter' && (
+            <>
+              <Select
+                label="Encounter Type"
+                value={(selectedNode.data.encounterType as string) ?? 'combat'}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { encounterType: e.target.value })
+                }
+                options={[
+                  { value: 'combat', label: 'Combat' },
+                  { value: 'puzzle', label: 'Puzzle' },
+                  { value: 'trap', label: 'Trap' },
+                  { value: 'social', label: 'Social' },
+                  { value: 'boss', label: 'Boss Fight' },
+                ]}
+              />
+              <Select
+                label="Difficulty"
+                value={(selectedNode.data.difficulty as string) ?? 'medium'}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { difficulty: e.target.value })
+                }
+                options={[
+                  { value: 'trivial', label: 'Trivial' },
+                  { value: 'easy', label: 'Easy' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'hard', label: 'Hard' },
+                  { value: 'deadly', label: 'Deadly' },
+                ]}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  label="Min Enemies"
+                  type="number"
+                  value={(selectedNode.data.enemyCount as any)?.min ?? 1}
+                  onChange={(e) =>
+                    updateNode(selectedNode.id, {
+                      enemyCount: {
+                        ...(selectedNode.data.enemyCount as any),
+                        min: parseInt(e.target.value) || 1,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  label="Max Enemies"
+                  type="number"
+                  value={(selectedNode.data.enemyCount as any)?.max ?? 4}
+                  onChange={(e) =>
+                    updateNode(selectedNode.id, {
+                      enemyCount: {
+                        ...(selectedNode.data.enemyCount as any),
+                        max: parseInt(e.target.value) || 4,
+                      },
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="rewardOnComplete"
+                  checked={(selectedNode.data.rewardOnComplete as boolean) ?? true}
+                  onChange={(e) =>
+                    updateNode(selectedNode.id, { rewardOnComplete: e.target.checked })
+                  }
+                  className="rounded border-slate-600 bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
+                />
+                <label htmlFor="rewardOnComplete" className="text-sm text-text-secondary">
+                  Reward on completion
+                </label>
+              </div>
+            </>
+          )}
+
+          {/* Start Node Properties */}
+          {selectedNode.type === 'start' && (
+            <>
+              <p className="text-xs text-text-muted">
+                The entry point of the dungeon. Players spawn here.
+              </p>
+              <Select
+                label="Spawn Area"
+                value={(selectedNode.data.spawnArea as string) ?? 'center'}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { spawnArea: e.target.value })
+                }
+                options={[
+                  { value: 'center', label: 'Room Center' },
+                  { value: 'entrance', label: 'Near Entrance' },
+                  { value: 'random', label: 'Random Position' },
+                ]}
+              />
+            </>
+          )}
+
+          {/* Output Node Properties */}
+          {selectedNode.type === 'output' && (
+            <>
+              <p className="text-xs text-text-muted">
+                The exit point of the dungeon. Connects to the next level or ends the run.
+              </p>
+              <Select
+                label="Exit Type"
+                value={(selectedNode.data.exitType as string) ?? 'stairs'}
+                onChange={(e) =>
+                  updateNode(selectedNode.id, { exitType: e.target.value })
+                }
+                options={[
+                  { value: 'stairs', label: 'Stairs Down' },
+                  { value: 'portal', label: 'Portal' },
+                  { value: 'door', label: 'Door' },
+                  { value: 'elevator', label: 'Elevator' },
+                ]}
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="requiresKey"
+                  checked={(selectedNode.data.requiresKey as boolean) ?? false}
+                  onChange={(e) =>
+                    updateNode(selectedNode.id, { requiresKey: e.target.checked })
+                  }
+                  className="rounded border-slate-600 bg-bg-tertiary text-accent-primary focus:ring-accent-primary"
+                />
+                <label htmlFor="requiresKey" className="text-sm text-text-secondary">
+                  Requires key to unlock
+                </label>
               </div>
             </>
           )}
