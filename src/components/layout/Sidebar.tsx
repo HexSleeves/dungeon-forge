@@ -185,10 +185,10 @@ export function Sidebar(): React.ReactElement {
                   {category.nodes.map((node) => (
                     <div
                       key={node.type}
-                      draggable
+                      draggable={true}
                       onDragStart={(e) => handleDragStart(e, node.type)}
                       onDragEnd={handleDragEnd}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-grab hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors active:cursor-grabbing"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-grab hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors active:cursor-grabbing select-none"
                     >
                       <node.icon size={14} />
                       <span className="text-sm">{node.label}</span>

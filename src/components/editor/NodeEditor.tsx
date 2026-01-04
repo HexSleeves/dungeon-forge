@@ -259,7 +259,12 @@ export function NodeEditor(): React.ReactElement {
   }
 
   return (
-    <div ref={reactFlowWrapper} className="flex-1 h-full">
+    <div
+      ref={reactFlowWrapper}
+      className="flex-1 h-full"
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
