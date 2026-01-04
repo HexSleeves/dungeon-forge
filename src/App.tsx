@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { ReactFlowProvider } from '@xyflow/react';
-import { Sidebar } from './components/layout/Sidebar';
-import { Toolbar } from './components/layout/Toolbar';
-import { StatusBar } from './components/layout/StatusBar';
-import { NodeEditor } from './components/editor/NodeEditor';
-import { NodePropertiesPanel } from './components/editor/panels/NodeProperties';
-import { PreviewPanel } from './components/preview/PreviewPanel';
-import { useProjectStore } from './stores/projectStore';
-import './styles/globals.css';
+import React, { useEffect } from "react";
+import { ReactFlowProvider } from "@xyflow/react";
+import { Sidebar } from "./components/layout/Sidebar";
+import { Toolbar } from "./components/layout/Toolbar";
+import { StatusBar } from "./components/layout/StatusBar";
+import { NodeEditor } from "./components/editor/NodeEditor";
+import { NodePropertiesPanel } from "./components/editor/panels/NodeProperties";
+import { PreviewPanel } from "./components/preview/PreviewPanel";
+import { useProjectStore } from "./stores/projectStore";
+import "./styles/globals.css";
 
 function App(): React.ReactElement {
   const { project, newProject } = useProjectStore();
@@ -15,7 +15,7 @@ function App(): React.ReactElement {
   // Create a default project on first load if none exists
   useEffect(() => {
     if (!project) {
-      newProject('Untitled Project');
+      newProject("Untitled Project");
     }
   }, []);
 
@@ -25,7 +25,7 @@ function App(): React.ReactElement {
       // Prevent default browser shortcuts
       if (e.ctrlKey || e.metaKey) {
         switch (e.key.toLowerCase()) {
-          case 'z':
+          case "z":
             if (e.shiftKey) {
               useProjectStore.getState().redo();
             } else {
@@ -33,11 +33,11 @@ function App(): React.ReactElement {
             }
             e.preventDefault();
             break;
-          case 'y':
+          case "y":
             useProjectStore.getState().redo();
             e.preventDefault();
             break;
-          case 's':
+          case "s":
             useProjectStore.getState().saveProject();
             e.preventDefault();
             break;
@@ -45,8 +45,8 @@ function App(): React.ReactElement {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (

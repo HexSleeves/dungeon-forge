@@ -11,7 +11,7 @@ import type {
   GeneratedRoom,
   RoomConnection,
   SpawnPoint,
-} from '../types';
+} from "../types";
 
 // Simple seeded random number generator
 class SeededRandom {
@@ -47,7 +47,7 @@ function generateDungeon(seed: number): DungeonLayout {
   let lastX = 0;
   let lastY = 0;
 
-  const roomTypes = ['entrance', 'hallway', 'chamber', 'treasure', 'boss'];
+  const roomTypes = ["entrance", "hallway", "chamber", "treasure", "boss"];
 
   for (let i = 0; i < roomCount; i++) {
     const width = rng.nextInt(6, 14);
@@ -59,7 +59,12 @@ function generateDungeon(seed: number): DungeonLayout {
     const x = lastX + offsetX;
     const y = lastY + offsetY;
 
-    const roomType = i === 0 ? 'entrance' : i === roomCount - 1 ? 'boss' : rng.pick(roomTypes.slice(1, 4));
+    const roomType =
+      i === 0
+        ? "entrance"
+        : i === roomCount - 1
+          ? "boss"
+          : rng.pick(roomTypes.slice(1, 4));
 
     const room: GeneratedRoom = {
       id: `room-${i}`,
@@ -68,17 +73,17 @@ function generateDungeon(seed: number): DungeonLayout {
       entities: [],
       metadata: {
         difficulty: i / roomCount,
-        theme: rng.pick(['stone', 'moss', 'crystal', 'lava']),
+        theme: rng.pick(["stone", "moss", "crystal", "lava"]),
       },
     };
 
     // Add entities to room
-    if (roomType !== 'entrance') {
+    if (roomType !== "entrance") {
       const entityCount = rng.nextInt(0, 4);
       for (let e = 0; e < entityCount; e++) {
         room.entities.push({
           id: `entity-${i}-${e}`,
-          type: rng.pick(['enemy', 'chest', 'trap', 'decoration']),
+          type: rng.pick(["enemy", "chest", "trap", "decoration"]),
           position: {
             x: x + rng.nextInt(1, width - 2),
             y: y + rng.nextInt(1, height - 2),
@@ -139,7 +144,7 @@ function generateDungeon(seed: number): DungeonLayout {
     const room = rng.pick(rooms.slice(1)); // Don't spawn in entrance
     spawnPoints.push({
       id: `spawn-${i}`,
-      type: rng.pick(['enemy', 'item', 'npc']),
+      type: rng.pick(["enemy", "item", "npc"]),
       position: {
         x: room.bounds.x + rng.nextInt(1, room.bounds.width - 2),
         y: room.bounds.y + rng.nextInt(1, room.bounds.height - 2),
@@ -175,21 +180,31 @@ function generateDungeon(seed: number): DungeonLayout {
 
 // Type-safe command handlers
 async function openProject(args: { path: string }): Promise<Project> {
-  console.log('Mock: open_project', args.path);
-  throw new Error('File operations not available in browser mode');
+  console.log("Mock: open_project", args.path);
+  throw new Error("File operations not available in browser mode");
 }
 
-async function saveProject(args: { project: Project; path: string }): Promise<void> {
-  console.log('Mock: save_project', args.path, args.project);
-  localStorage.setItem(`dungeon-forge-project-${args.project.id}`, JSON.stringify(args.project));
+async function saveProject(args: {
+  project: Project;
+  path: string;
+}): Promise<void> {
+  console.log("Mock: save_project", args.path, args.project);
+  localStorage.setItem(
+    `dungeon-forge-project-${args.project.id}`,
+    JSON.stringify(args.project),
+  );
 }
 
-async function generateOnce(args: { request: GenerationRequest }): Promise<GenerationResult> {
+async function generateOnce(args: {
+  request: GenerationRequest;
+}): Promise<GenerationResult> {
   const { request } = args;
   const startTime = performance.now();
 
   // Simulate some async delay
-  await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 200));
+  await new Promise((resolve) =>
+    setTimeout(resolve, 100 + Math.random() * 200),
+  );
 
   const dungeon = generateDungeon(request.seed);
   const endTime = performance.now();
@@ -200,9 +215,21 @@ async function generateOnce(args: { request: GenerationRequest }): Promise<Gener
     success: true,
     data: dungeon,
     constraintResults: [
-      { constraintId: 'min-rooms', passed: dungeon.rooms.length >= 5, message: `Room count: ${dungeon.rooms.length}` },
-      { constraintId: 'connected', passed: true, message: 'All rooms connected' },
-      { constraintId: 'has-exit', passed: dungeon.exits.length > 0, message: 'Exit exists' },
+      {
+        constraintId: "min-rooms",
+        passed: dungeon.rooms.length >= 5,
+        message: `Room count: ${dungeon.rooms.length}`,
+      },
+      {
+        constraintId: "connected",
+        passed: true,
+        message: "All rooms connected",
+      },
+      {
+        constraintId: "has-exit",
+        passed: dungeon.exits.length > 0,
+        message: "Exit exists",
+      },
     ],
     metadata: {
       nodeExecutions: dungeon.rooms.length * 3,
@@ -213,7 +240,9 @@ async function generateOnce(args: { request: GenerationRequest }): Promise<Gener
   };
 }
 
-async function runSimulation(args: { config: SimulationConfig }): Promise<SimulationResults> {
+async function runSimulation(args: {
+  config: SimulationConfig;
+}): Promise<SimulationResults> {
   const { config } = args;
   const startTime = performance.now();
   const results: GenerationResult[] = [];
@@ -229,14 +258,20 @@ async function runSimulation(args: { config: SimulationConfig }): Promise<Simula
   const roomCounts = results.map((r) => r.data?.rooms.length ?? 0);
   const pathLengths = results.map((r) => r.data?.connections.length ?? 0);
   const enemyCounts = results.map(
-    (r) => r.data?.rooms.reduce((sum, room) => sum + room.entities.filter((e) => e.type === 'enemy').length, 0) ?? 0
+    (r) =>
+      r.data?.rooms.reduce(
+        (sum, room) =>
+          sum + room.entities.filter((e) => e.type === "enemy").length,
+        0,
+      ) ?? 0,
   );
 
   const calcStats = (values: number[]) => {
     const sorted = [...values].sort((a, b) => a - b);
     const sum = values.reduce((a, b) => a + b, 0);
     const mean = sum / values.length;
-    const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
+    const variance =
+      values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
 
     return {
       min: sorted[0],
@@ -266,7 +301,7 @@ async function runSimulation(args: { config: SimulationConfig }): Promise<Simula
       itemCount: calcStats(roomCounts.map(() => 0)),
     },
     constraintResults: {
-      'min-rooms': { passRate: 1.0, violations: 0 },
+      "min-rooms": { passRate: 1.0, violations: 0 },
       connected: { passRate: 1.0, violations: 0 },
     },
     warnings: [],
@@ -278,9 +313,13 @@ async function cancelSimulation(): Promise<void> {
 }
 
 // Command dispatcher
-const commands: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
+const commands: Record<
+  string,
+  (args: Record<string, unknown>) => Promise<unknown>
+> = {
   open_project: (args) => openProject(args as { path: string }),
-  save_project: (args) => saveProject(args as { project: Project; path: string }),
+  save_project: (args) =>
+    saveProject(args as { project: Project; path: string }),
   generate_once: (args) => generateOnce(args as { request: GenerationRequest }),
   run_simulation: (args) => runSimulation(args as { config: SimulationConfig }),
   cancel_simulation: () => cancelSimulation(),
@@ -288,11 +327,14 @@ const commands: Record<string, (args: Record<string, unknown>) => Promise<unknow
 
 // Check if we're in Tauri environment
 export function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
+  return typeof window !== "undefined" && "__TAURI__" in window;
 }
 
 // Mock invoke function
-export async function mockInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
+export async function mockInvoke<T>(
+  cmd: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
   const handler = commands[cmd];
   if (!handler) {
     throw new Error(`Unknown command: ${cmd}`);

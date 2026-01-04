@@ -1,6 +1,6 @@
-import React, { memo } from 'react';
-import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
-import type { NodeType, Port } from '../../../types';
+import React, { memo } from "react";
+import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
+import type { NodeType, Port } from "../../../types";
 
 interface BaseNodeData extends Record<string, unknown> {
   label: string;
@@ -12,36 +12,39 @@ interface BaseNodeData extends Record<string, unknown> {
 type BaseNodeType = Node<BaseNodeData>;
 
 const NODE_COLORS: Record<string, string> = {
-  start: 'border-node-start',
-  output: 'border-node-output',
-  room: 'border-node-room',
-  room_chain: 'border-node-room',
-  branch: 'border-node-logic',
-  merge: 'border-node-logic',
-  spawn_point: 'border-node-spawn',
-  loot_drop: 'border-node-spawn',
-  encounter: 'border-node-spawn',
-  random_select: 'border-node-logic',
-  distribution: 'border-node-logic',
-  default: 'border-slate-500',
+  start: "border-node-start",
+  output: "border-node-output",
+  room: "border-node-room",
+  room_chain: "border-node-room",
+  branch: "border-node-logic",
+  merge: "border-node-logic",
+  spawn_point: "border-node-spawn",
+  loot_drop: "border-node-spawn",
+  encounter: "border-node-spawn",
+  random_select: "border-node-logic",
+  distribution: "border-node-logic",
+  default: "border-slate-500",
 };
 
 const NODE_ICONS: Record<string, string> = {
-  start: '▶',
-  output: '◼',
-  room: '□',
-  room_chain: '⬚',
-  branch: '⑂',
-  merge: '⑃',
-  spawn_point: '◎',
-  loot_drop: '✦',
-  encounter: '⚔',
+  start: "▶",
+  output: "◼",
+  room: "□",
+  room_chain: "⬚",
+  branch: "⑂",
+  merge: "⑃",
+  spawn_point: "◎",
+  loot_drop: "✦",
+  encounter: "⚔",
 };
 
-function BaseNodeComponent({ data, selected }: NodeProps<BaseNodeType>): React.ReactElement {
+function BaseNodeComponent({
+  data,
+  selected,
+}: NodeProps<BaseNodeType>): React.ReactElement {
   const nodeData = data as BaseNodeData;
   const borderColor = NODE_COLORS[nodeData.nodeType] || NODE_COLORS.default;
-  const icon = NODE_ICONS[nodeData.nodeType] || '●';
+  const icon = NODE_ICONS[nodeData.nodeType] || "●";
   const inputs = nodeData.inputs || [];
   const outputs = nodeData.outputs || [];
 
@@ -51,7 +54,7 @@ function BaseNodeComponent({ data, selected }: NodeProps<BaseNodeType>): React.R
         min-w-[140px] rounded-lg border-2 shadow-lg
         bg-bg-secondary
         ${borderColor}
-        ${selected ? 'ring-2 ring-white/50' : ''}
+        ${selected ? "ring-2 ring-white/50" : ""}
       `}
     >
       {/* Header */}
@@ -73,7 +76,7 @@ function BaseNodeComponent({ data, selected }: NodeProps<BaseNodeType>): React.R
             id={input.id}
             style={{
               top: `${((idx + 1) / (inputs.length + 1)) * 100}%`,
-              background: '#3b82f6',
+              background: "#3b82f6",
             }}
             className="!w-3 !h-3 !border-2 !border-bg-primary"
           />
@@ -102,7 +105,7 @@ function BaseNodeComponent({ data, selected }: NodeProps<BaseNodeType>): React.R
             id={output.id}
             style={{
               top: `${((idx + 1) / (outputs.length + 1)) * 100}%`,
-              background: '#3b82f6',
+              background: "#3b82f6",
             }}
             className="!w-3 !h-3 !border-2 !border-bg-primary"
           />

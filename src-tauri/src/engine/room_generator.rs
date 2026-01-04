@@ -79,7 +79,11 @@ impl RoomGenerator {
             metadata.insert(
                 "tags".to_string(),
                 serde_json::Value::Array(
-                    config.tags.iter().map(|t| serde_json::Value::String(t.clone())).collect()
+                    config
+                        .tags
+                        .iter()
+                        .map(|t| serde_json::Value::String(t.clone()))
+                        .collect(),
                 ),
             );
         }
@@ -172,18 +176,22 @@ impl RoomGenerator {
         match direction {
             Direction::Right => LayoutPosition {
                 x: room.bounds.x + room.bounds.width,
-                y: room.bounds.y + rng.gen_range(room.bounds.height * 0.25..room.bounds.height * 0.75),
+                y: room.bounds.y
+                    + rng.gen_range(room.bounds.height * 0.25..room.bounds.height * 0.75),
             },
             Direction::Left => LayoutPosition {
                 x: room.bounds.x,
-                y: room.bounds.y + rng.gen_range(room.bounds.height * 0.25..room.bounds.height * 0.75),
+                y: room.bounds.y
+                    + rng.gen_range(room.bounds.height * 0.25..room.bounds.height * 0.75),
             },
             Direction::Down => LayoutPosition {
-                x: room.bounds.x + rng.gen_range(room.bounds.width * 0.25..room.bounds.width * 0.75),
+                x: room.bounds.x
+                    + rng.gen_range(room.bounds.width * 0.25..room.bounds.width * 0.75),
                 y: room.bounds.y + room.bounds.height,
             },
             Direction::Up => LayoutPosition {
-                x: room.bounds.x + rng.gen_range(room.bounds.width * 0.25..room.bounds.width * 0.75),
+                x: room.bounds.x
+                    + rng.gen_range(room.bounds.width * 0.25..room.bounds.width * 0.75),
                 y: room.bounds.y,
             },
         }

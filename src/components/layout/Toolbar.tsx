@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Save,
   FolderOpen,
@@ -14,14 +14,14 @@ import {
   MousePointer2,
   Move,
   FilePlus,
-} from 'lucide-react';
-import { useProjectStore } from '../../stores/projectStore';
-import { useEditorStore } from '../../stores/editorStore';
-import { useGenerationStore } from '../../stores/generationStore';
-import { Button } from '../ui/Button';
-import { Tooltip } from '../ui/Tooltip';
-import { Dialog } from '../ui/Dialog';
-import { Input } from '../ui/Input';
+} from "lucide-react";
+import { useProjectStore } from "../../stores/projectStore";
+import { useEditorStore } from "../../stores/editorStore";
+import { useGenerationStore } from "../../stores/generationStore";
+import { Button } from "../ui/Button";
+import { Tooltip } from "../ui/Tooltip";
+import { Dialog } from "../ui/Dialog";
+import { Input } from "../ui/Input";
 
 export function Toolbar(): React.ReactElement {
   const project = useProjectStore((state) => state.project);
@@ -38,27 +38,29 @@ export function Toolbar(): React.ReactElement {
   const setZoom = useEditorStore((state) => state.setZoom);
   const activeTool = useEditorStore((state) => state.activeTool);
   const setActiveTool = useEditorStore((state) => state.setActiveTool);
-  
+
   const currentSeed = useGenerationStore((state) => state.currentSeed);
   const setSeed = useGenerationStore((state) => state.setSeed);
   const randomizeSeed = useGenerationStore((state) => state.randomizeSeed);
   const isGenerating = useGenerationStore((state) => state.isGenerating);
   const generate = useGenerationStore((state) => state.generate);
-  
+
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectName, setNewProjectName] = useState("");
 
   const handleNewProject = () => {
     if (newProjectName.trim()) {
       newProject(newProjectName.trim());
-      setNewProjectName('');
+      setNewProjectName("");
       setShowNewProjectDialog(false);
     }
   };
 
   const handleGenerate = () => {
     if (activeGeneratorId && project) {
-      const generator = project.generators.find(g => g.id === activeGeneratorId);
+      const generator = project.generators.find(
+        (g) => g.id === activeGeneratorId,
+      );
       generate(activeGeneratorId, undefined, generator);
     }
   };
@@ -76,13 +78,13 @@ export function Toolbar(): React.ReactElement {
             <FilePlus size={18} />
           </Button>
         </Tooltip>
-        
+
         <Tooltip content="Open Project (Ctrl+O)">
           <Button variant="ghost" size="sm">
             <FolderOpen size={18} />
           </Button>
         </Tooltip>
-        
+
         <Tooltip content="Save (Ctrl+S)">
           <Button
             variant="ghost"
@@ -101,7 +103,7 @@ export function Toolbar(): React.ReactElement {
             <Undo2 size={18} />
           </Button>
         </Tooltip>
-        
+
         <Tooltip content="Redo (Ctrl+Y)">
           <Button variant="ghost" size="sm" onClick={redo} disabled={!canRedo}>
             <Redo2 size={18} />
@@ -113,19 +115,19 @@ export function Toolbar(): React.ReactElement {
       <div className="flex items-center gap-1 bg-bg-tertiary rounded-lg p-1">
         <Tooltip content="Select Tool (V)">
           <Button
-            variant={activeTool === 'select' ? 'primary' : 'ghost'}
+            variant={activeTool === "select" ? "primary" : "ghost"}
             size="sm"
-            onClick={() => setActiveTool('select')}
+            onClick={() => setActiveTool("select")}
           >
             <MousePointer2 size={16} />
           </Button>
         </Tooltip>
-        
+
         <Tooltip content="Pan Tool (Space)">
           <Button
-            variant={activeTool === 'pan' ? 'primary' : 'ghost'}
+            variant={activeTool === "pan" ? "primary" : "ghost"}
             size="sm"
-            onClick={() => setActiveTool('pan')}
+            onClick={() => setActiveTool("pan")}
           >
             <Move size={16} />
           </Button>
@@ -181,7 +183,11 @@ export function Toolbar(): React.ReactElement {
         {/* Zoom controls */}
         <div className="flex items-center gap-1">
           <Tooltip content="Zoom Out (Ctrl+-)">
-            <Button variant="ghost" size="sm" onClick={() => setZoom(zoom - 0.1)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setZoom(zoom - 0.1)}
+            >
               <ZoomOut size={16} />
             </Button>
           </Tooltip>
@@ -189,7 +195,11 @@ export function Toolbar(): React.ReactElement {
             {Math.round(zoom * 100)}%
           </span>
           <Tooltip content="Zoom In (Ctrl++)">
-            <Button variant="ghost" size="sm" onClick={() => setZoom(zoom + 0.1)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setZoom(zoom + 0.1)}
+            >
               <ZoomIn size={16} />
             </Button>
           </Tooltip>
@@ -208,7 +218,10 @@ export function Toolbar(): React.ReactElement {
         title="New Project"
         actions={
           <>
-            <Button variant="secondary" onClick={() => setShowNewProjectDialog(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowNewProjectDialog(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleNewProject}>Create</Button>
@@ -222,7 +235,7 @@ export function Toolbar(): React.ReactElement {
           placeholder="My Dungeon Generator"
           autoFocus
           onKeyDown={(e) => {
-            if (e.key === 'Enter') handleNewProject();
+            if (e.key === "Enter") handleNewProject();
           }}
         />
       </Dialog>

@@ -1,9 +1,9 @@
 use crate::engine::GraphExecutor;
 use crate::models::{
-    GenerationRequest, GenerationResult, DungeonLayout, GeneratedRoom, RoomConnection,
-    SpawnPoint, LayoutPosition, Rectangle, GenerationMetadata, ConstraintResult,
-    SimulationConfig, SimulationResults, SimulationStatistics, DistributionStats,
-    Percentiles, HistogramBucket, ConstraintStats,
+    ConstraintResult, ConstraintStats, DistributionStats, DungeonLayout, GeneratedRoom,
+    GenerationMetadata, GenerationRequest, GenerationResult, HistogramBucket, LayoutPosition,
+    Percentiles, Rectangle, RoomConnection, SimulationConfig, SimulationResults,
+    SimulationStatistics, SpawnPoint,
 };
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -14,7 +14,7 @@ use tauri::command;
 #[command]
 pub fn generate_once(request: GenerationRequest) -> Result<GenerationResult, String> {
     let start = Instant::now();
-    
+
     // If we have a generator with a graph, use the graph executor
     let (result, node_executions) = if let Some(ref generator) = request.generator {
         // Use graph-based generation
@@ -48,9 +48,9 @@ pub fn generate_once(request: GenerationRequest) -> Result<GenerationResult, Str
         let mut rng = ChaCha8Rng::seed_from_u64(request.seed);
         (generate_dungeon(&mut rng), 10)
     };
-    
+
     let duration = start.elapsed();
-    
+
     Ok(GenerationResult {
         seed: request.seed,
         timestamp: std::time::SystemTime::now()
@@ -59,13 +59,11 @@ pub fn generate_once(request: GenerationRequest) -> Result<GenerationResult, Str
             .as_secs(),
         success: true,
         data: Some(result),
-        constraint_results: vec![
-            ConstraintResult {
-                constraint_id: "connected".to_string(),
-                passed: true,
-                message: Some("All rooms reachable".to_string()),
-            },
-        ],
+        constraint_results: vec![ConstraintResult {
+            constraint_id: "connected".to_string(),
+            passed: true,
+            message: Some("All rooms reachable".to_string()),
+        }],
         metadata: GenerationMetadata {
             node_executions,
             retry_count: 0,
@@ -80,14 +78,14 @@ fn generate_dungeon(rng: &mut ChaCha8Rng) -> DungeonLayout {
     let mut rooms = Vec::new();
     let mut connections = Vec::new();
     let mut spawn_points = Vec::new();
-    
+
     // Room types for variety
     let room_types = ["default", "treasure", "boss", "shop"];
-    
+
     // Generate rooms in a rough grid pattern
     let mut x = 0.0;
     let mut y = 0.0;
-    
+
     for i in 0..room_count {
         let room_type = if i == 0 {
             "start"
@@ -96,10 +94,10 @@ fn generate_dungeon(rng: &mut ChaCha8Rng) -> DungeonLayout {
         } else {
             room_types[rng.gen_range(0..room_types.len())]
         };
-        
+
         let width = rng.gen_range(5.0..10.0);
         let height = rng.gen_range(5.0..10.0);
-        
+
         rooms.push(GeneratedRoom {
             id: format!("room_{}", i),
             room_type: room_type.to_string(),
@@ -113,7 +111,7 @@ fn generate_dungeon(rng: &mut ChaCha8Rng) -> DungeonLayout {
             entities: vec![],
             metadata: HashMap::new(),
         });
-        
+
         // Add spawn point for non-start rooms
         if i > 0 && room_type != "boss" {
             let spawn_count = rng.gen_range(1..=3);
@@ -129,7 +127,7 @@ fn generate_dungeon(rng: &mut ChaCha8Rng) -> DungeonLayout {
                 });
             }
         }
-        
+
         // Connect to previous room
         if i > 0 {
             let prev_room = &rooms[i - 1];
@@ -146,7 +144,7 @@ fn generate_dungeon(rng: &mut ChaCha8Rng) -> DungeonLayout {
                 },
             });
         }
-        
+
         // Move position for next room
         if rng.gen_bool(0.5) {
             x += width + 5.0 + rng.gen_range(0.0..10.0);
@@ -157,19 +155,19 @@ fn generate_dungeon(rng: &mut ChaCha8Rng) -> DungeonLayout {
             }
         }
     }
-    
+
     let start_room = &rooms[0];
     let player_start = LayoutPosition {
         x: start_room.bounds.x + start_room.bounds.width / 2.0,
         y: start_room.bounds.y + start_room.bounds.height / 2.0,
     };
-    
+
     let last_room = &rooms[rooms.len() - 1];
     let exit = LayoutPosition {
         x: last_room.bounds.x + last_room.bounds.width / 2.0,
         y: last_room.bounds.y + last_room.bounds.height / 2.0,
     };
-    
+
     DungeonLayout {
         rooms,
         connections,
@@ -187,22 +185,22 @@ pub fn run_simulation(config: SimulationConfig) -> Result<SimulationResults, Str
     let mut enemy_counts: Vec<f64> = Vec::new();
     let mut item_counts: Vec<f64> = Vec::new();
     let mut successes = 0u32;
-    
+
     let seed_start = config.seed_start.unwrap_or(0);
-    
+
     for i in 0..config.run_count {
         let mut rng = ChaCha8Rng::seed_from_u64(seed_start + i as u64);
         let layout = generate_dungeon(&mut rng);
-        
+
         room_counts.push(layout.rooms.len() as f64);
         path_lengths.push(layout.connections.len() as f64 + 1.0);
         enemy_counts.push(layout.spawn_points.len() as f64);
         item_counts.push(0.0); // Placeholder
         successes += 1;
     }
-    
+
     let duration = start.elapsed();
-    
+
     Ok(SimulationResults {
         config: config.clone(),
         runs: config.run_count,
@@ -214,12 +212,13 @@ pub fn run_simulation(config: SimulationConfig) -> Result<SimulationResults, Str
             enemy_count: calculate_stats(&enemy_counts),
             item_count: calculate_stats(&item_counts),
         },
-        constraint_results: HashMap::from([
-            ("connected".to_string(), ConstraintStats {
+        constraint_results: HashMap::from([(
+            "connected".to_string(),
+            ConstraintStats {
                 pass_rate: 1.0,
                 violations: 0,
-            }),
-        ]),
+            },
+        )]),
         warnings: vec![],
     })
 }
@@ -232,40 +231,51 @@ fn calculate_stats(data: &[f64]) -> DistributionStats {
             mean: 0.0,
             median: 0.0,
             std_dev: 0.0,
-            percentiles: Percentiles { p5: 0.0, p25: 0.0, p75: 0.0, p95: 0.0 },
+            percentiles: Percentiles {
+                p5: 0.0,
+                p25: 0.0,
+                p75: 0.0,
+                p95: 0.0,
+            },
             histogram: vec![],
         };
     }
-    
+
     let mut sorted = data.to_vec();
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    
+
     let min = sorted[0];
     let max = sorted[sorted.len() - 1];
     let mean = data.iter().sum::<f64>() / data.len() as f64;
     let median = sorted[sorted.len() / 2];
-    
+
     let variance = data.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / data.len() as f64;
     let std_dev = variance.sqrt();
-    
+
     let percentile = |p: f64| -> f64 {
         let idx = ((p / 100.0) * (sorted.len() - 1) as f64) as usize;
         sorted[idx.min(sorted.len() - 1)]
     };
-    
+
     // Generate histogram with 10 buckets
     let bucket_size = (max - min) / 10.0;
-    let mut histogram = vec![HistogramBucket { bucket: 0.0, count: 0 }; 10];
+    let mut histogram = vec![
+        HistogramBucket {
+            bucket: 0.0,
+            count: 0
+        };
+        10
+    ];
     for (i, h) in histogram.iter_mut().enumerate() {
         h.bucket = min + (i as f64 * bucket_size);
     }
-    
+
     for val in data {
         let bucket_idx = ((val - min) / bucket_size).floor() as usize;
         let bucket_idx = bucket_idx.min(9);
         histogram[bucket_idx].count += 1;
     }
-    
+
     DistributionStats {
         min,
         max,

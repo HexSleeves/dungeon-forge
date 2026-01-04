@@ -1,7 +1,7 @@
-import React from 'react';
-import { Circle, AlertCircle, CheckCircle } from 'lucide-react';
-import { useProjectStore } from '../../stores/projectStore';
-import { useGenerationStore } from '../../stores/generationStore';
+import React from "react";
+import { Circle, AlertCircle, CheckCircle } from "lucide-react";
+import { useProjectStore } from "../../stores/projectStore";
+import { useGenerationStore } from "../../stores/generationStore";
 
 export function StatusBar(): React.ReactElement {
   const project = useProjectStore((state) => state.project);
@@ -11,7 +11,9 @@ export function StatusBar(): React.ReactElement {
   const lastResult = useGenerationStore((state) => state.lastResult);
   const isGenerating = useGenerationStore((state) => state.isGenerating);
 
-  const activeGenerator = project?.generators.find((g) => g.id === activeGeneratorId);
+  const activeGenerator = project?.generators.find(
+    (g) => g.id === activeGeneratorId,
+  );
   const nodeCount = activeGenerator?.graph.nodes.length ?? 0;
   const edgeCount = activeGenerator?.graph.edges.length ?? 0;
 
@@ -22,10 +24,14 @@ export function StatusBar(): React.ReactElement {
         <div className="flex items-center gap-2">
           <Circle
             size={8}
-            className={isDirty ? 'text-amber-400 fill-amber-400' : 'text-green-400 fill-green-400'}
+            className={
+              isDirty
+                ? "text-amber-400 fill-amber-400"
+                : "text-green-400 fill-green-400"
+            }
           />
           <span className="text-text-muted">
-            {isDirty ? 'Unsaved changes' : 'All changes saved'}
+            {isDirty ? "Unsaved changes" : "All changes saved"}
           </span>
         </div>
 
@@ -53,9 +59,7 @@ export function StatusBar(): React.ReactElement {
             ) : (
               <>
                 <AlertCircle size={12} className="text-red-400" />
-                <span className="text-red-400">
-                  Generation failed
-                </span>
+                <span className="text-red-400">Generation failed</span>
               </>
             )}
           </div>
@@ -64,9 +68,7 @@ export function StatusBar(): React.ReactElement {
 
       {/* Right section */}
       <div className="flex items-center gap-4">
-        <span className="text-text-muted">
-          Dungeon Forge v0.1.0
-        </span>
+        <span className="text-text-muted">Dungeon Forge v0.1.0</span>
       </div>
     </footer>
   );

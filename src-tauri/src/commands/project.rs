@@ -6,7 +6,7 @@ use tauri::command;
 #[command]
 pub fn create_project(name: String) -> Result<Project, String> {
     let now = chrono::Utc::now().to_rfc3339();
-    
+
     Ok(Project {
         id: uuid::Uuid::new_v4().to_string(),
         name,
@@ -21,12 +21,11 @@ pub fn create_project(name: String) -> Result<Project, String> {
 
 #[command]
 pub fn open_project(path: String) -> Result<Project, String> {
-    let content = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read file: {}", e))?;
-    
-    let project: Project = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse project: {}", e))?;
-    
+    let content = fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {}", e))?;
+
+    let project: Project =
+        serde_json::from_str(&content).map_err(|e| format!("Failed to parse project: {}", e))?;
+
     Ok(project)
 }
 
@@ -34,10 +33,9 @@ pub fn open_project(path: String) -> Result<Project, String> {
 pub fn save_project(project: Project, path: String) -> Result<(), String> {
     let content = serde_json::to_string_pretty(&project)
         .map_err(|e| format!("Failed to serialize project: {}", e))?;
-    
-    fs::write(&path, content)
-        .map_err(|e| format!("Failed to write file: {}", e))?;
-    
+
+    fs::write(&path, content).map_err(|e| format!("Failed to write file: {}", e))?;
+
     Ok(())
 }
 

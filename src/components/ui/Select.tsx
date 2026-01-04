@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -10,12 +10,12 @@ export function Select({
   label,
   options,
   error,
-  className = '',
+  className = "",
   id,
   ...props
 }: SelectProps): React.ReactElement {
-  const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
-  
+  const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
+
   return (
     <div className="flex flex-col gap-1">
       {label && (
@@ -30,7 +30,7 @@ export function Select({
           text-text-primary
           focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? 'border-red-500' : ''}
+          ${error ? "border-red-500" : ""}
           ${className}
         `}
         {...props}
@@ -41,9 +41,7 @@ export function Select({
           </option>
         ))}
       </select>
-      {error && (
-        <span className="text-xs text-red-400">{error}</span>
-      )}
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 }

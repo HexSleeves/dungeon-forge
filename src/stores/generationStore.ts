@@ -23,7 +23,11 @@ interface GenerationState {
   // Actions
   setSeed: (seed: number) => void;
   randomizeSeed: () => void;
-  generate: (generatorId: string, seed?: number, generator?: Generator) => Promise<void>;
+  generate: (
+    generatorId: string,
+    seed?: number,
+    generator?: Generator,
+  ) => Promise<void>;
   runSimulation: (config: SimulationConfig) => Promise<void>;
   cancelSimulation: () => void;
   clearResults: () => void;

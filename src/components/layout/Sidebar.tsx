@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   FolderOpen,
   Plus,
@@ -11,81 +11,89 @@ import {
   ChevronDown,
   ChevronRight,
   Trash2,
-} from 'lucide-react';
-import { useShallow } from 'zustand/react/shallow';
-import { useProjectStore } from '../../stores/projectStore';
-import { Button } from '../ui/Button';
-import { Dialog } from '../ui/Dialog';
-import { Input } from '../ui/Input';
-import { Select } from '../ui/Select';
-import type { GeneratorType, NodeType } from '../../types';
+} from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
+import { useProjectStore } from "../../stores/projectStore";
+import { Button } from "../ui/Button";
+import { Dialog } from "../ui/Dialog";
+import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
+import type { GeneratorType, NodeType } from "../../types";
 
 const NODE_CATEGORIES = [
   {
-    name: 'Structure',
+    name: "Structure",
     icon: Map,
     nodes: [
-      { type: 'start' as NodeType, label: 'Start', icon: Target },
-      { type: 'output' as NodeType, label: 'Output', icon: Target },
+      { type: "start" as NodeType, label: "Start", icon: Target },
+      { type: "output" as NodeType, label: "Output", icon: Target },
     ],
   },
   {
-    name: 'Rooms',
+    name: "Rooms",
     icon: Box,
     nodes: [
-      { type: 'room' as NodeType, label: 'Room', icon: Box },
-      { type: 'room_chain' as NodeType, label: 'Room Chain', icon: Box },
+      { type: "room" as NodeType, label: "Room", icon: Box },
+      { type: "room_chain" as NodeType, label: "Room Chain", icon: Box },
     ],
   },
   {
-    name: 'Flow',
+    name: "Flow",
     icon: GitBranch,
     nodes: [
-      { type: 'branch' as NodeType, label: 'Branch', icon: GitBranch },
-      { type: 'merge' as NodeType, label: 'Merge', icon: GitBranch },
+      { type: "branch" as NodeType, label: "Branch", icon: GitBranch },
+      { type: "merge" as NodeType, label: "Merge", icon: GitBranch },
     ],
   },
   {
-    name: 'Content',
+    name: "Content",
     icon: Target,
     nodes: [
-      { type: 'spawn_point' as NodeType, label: 'Spawn Point', icon: Target },
-      { type: 'loot_drop' as NodeType, label: 'Loot Drop', icon: Dice5 },
-      { type: 'encounter' as NodeType, label: 'Encounter', icon: Target },
+      { type: "spawn_point" as NodeType, label: "Spawn Point", icon: Target },
+      { type: "loot_drop" as NodeType, label: "Loot Drop", icon: Dice5 },
+      { type: "encounter" as NodeType, label: "Encounter", icon: Target },
     ],
   },
 ];
 
 export function Sidebar(): React.ReactElement {
   const project = useProjectStore((state) => state.project);
-  const generators = useProjectStore(useShallow((state) => state.project?.generators ?? []))
+  const generators = useProjectStore(
+    useShallow((state) => state.project?.generators ?? []),
+  );
   const activeGeneratorId = useProjectStore((state) => state.activeGeneratorId);
   const addGenerator = useProjectStore((state) => state.addGenerator);
   const removeGenerator = useProjectStore((state) => state.removeGenerator);
-  const setActiveGenerator = useProjectStore((state) => state.setActiveGenerator);
+  const setActiveGenerator = useProjectStore(
+    (state) => state.setActiveGenerator,
+  );
 
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['Structure', 'Rooms']);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([
+    "Structure",
+    "Rooms",
+  ]);
   const [showNewGeneratorDialog, setShowNewGeneratorDialog] = useState(false);
-  const [newGeneratorName, setNewGeneratorName] = useState('');
-  const [newGeneratorType, setNewGeneratorType] = useState<GeneratorType>('dungeon');
+  const [newGeneratorName, setNewGeneratorName] = useState("");
+  const [newGeneratorType, setNewGeneratorType] =
+    useState<GeneratorType>("dungeon");
 
   const toggleCategory = (name: string) => {
     setExpandedCategories((prev) =>
-      prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name]
+      prev.includes(name) ? prev.filter((c) => c !== name) : [...prev, name],
     );
   };
 
   const handleCreateGenerator = () => {
     if (newGeneratorName.trim()) {
       addGenerator(newGeneratorName.trim(), newGeneratorType);
-      setNewGeneratorName('');
+      setNewGeneratorName("");
       setShowNewGeneratorDialog(false);
     }
   };
 
   const handleDragStart = (e: React.DragEvent, nodeType: NodeType) => {
-    e.dataTransfer.setData('application/dungeon-forge-node', nodeType);
-    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData("application/dungeon-forge-node", nodeType);
+    e.dataTransfer.effectAllowed = "copy";
   };
 
   return (
@@ -95,7 +103,7 @@ export function Sidebar(): React.ReactElement {
         <div className="flex items-center gap-2 mb-3">
           <FolderOpen size={18} className="text-accent-primary" />
           <span className="font-medium text-sm truncate">
-            {project?.name || 'No Project'}
+            {project?.name || "No Project"}
           </span>
         </div>
 
@@ -106,9 +114,10 @@ export function Sidebar(): React.ReactElement {
               key={gen.id}
               className={`
                 group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer
-                ${activeGeneratorId === gen.id
-                  ? 'bg-accent-muted text-accent-primary'
-                  : 'hover:bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                ${
+                  activeGeneratorId === gen.id
+                    ? "bg-accent-muted text-accent-primary"
+                    : "hover:bg-bg-tertiary text-text-secondary hover:text-text-primary"
                 }
               `}
               onClick={() => setActiveGenerator(gen.id)}
@@ -182,7 +191,11 @@ export function Sidebar(): React.ReactElement {
 
       {/* Settings */}
       <div className="p-4 border-t border-slate-700">
-        <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2"
+        >
           <Settings size={16} />
           Settings
         </Button>
@@ -195,7 +208,10 @@ export function Sidebar(): React.ReactElement {
         title="New Generator"
         actions={
           <>
-            <Button variant="secondary" onClick={() => setShowNewGeneratorDialog(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setShowNewGeneratorDialog(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleCreateGenerator}>Create</Button>
@@ -213,12 +229,14 @@ export function Sidebar(): React.ReactElement {
           <Select
             label="Type"
             value={newGeneratorType}
-            onChange={(e) => setNewGeneratorType(e.target.value as GeneratorType)}
+            onChange={(e) =>
+              setNewGeneratorType(e.target.value as GeneratorType)
+            }
             options={[
-              { value: 'dungeon', label: 'Dungeon' },
-              { value: 'loot', label: 'Loot Table' },
-              { value: 'encounter', label: 'Encounter' },
-              { value: 'custom', label: 'Custom' },
+              { value: "dungeon", label: "Dungeon" },
+              { value: "loot", label: "Loot Table" },
+              { value: "encounter", label: "Encounter" },
+              { value: "custom", label: "Custom" },
             ]}
           />
         </div>

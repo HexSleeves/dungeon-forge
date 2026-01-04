@@ -1,5 +1,5 @@
-pub mod project;
 pub mod generator;
+pub mod project;
 pub mod result;
 
 pub use project::*;

@@ -1,14 +1,16 @@
-import React from 'react';
-import { X, RefreshCw, Shuffle } from 'lucide-react';
-import { PreviewCanvas } from './PreviewCanvas';
-import { useEditorStore } from '../../stores/editorStore';
-import { useGenerationStore } from '../../stores/generationStore';
-import { useProjectStore } from '../../stores/projectStore';
-import { Button } from '../ui/Button';
+import React from "react";
+import { X, RefreshCw, Shuffle } from "lucide-react";
+import { PreviewCanvas } from "./PreviewCanvas";
+import { useEditorStore } from "../../stores/editorStore";
+import { useGenerationStore } from "../../stores/generationStore";
+import { useProjectStore } from "../../stores/projectStore";
+import { Button } from "../ui/Button";
 
 export function PreviewPanel(): React.ReactElement | null {
   const previewPanelOpen = useEditorStore((state) => state.previewPanelOpen);
-  const togglePreviewPanel = useEditorStore((state) => state.togglePreviewPanel);
+  const togglePreviewPanel = useEditorStore(
+    (state) => state.togglePreviewPanel,
+  );
 
   const currentSeed = useGenerationStore((state) => state.currentSeed);
   const randomizeSeed = useGenerationStore((state) => state.randomizeSeed);
@@ -23,7 +25,9 @@ export function PreviewPanel(): React.ReactElement | null {
 
   const handleGenerate = () => {
     if (activeGeneratorId && project) {
-      const generator = project.generators.find(g => g.id === activeGeneratorId);
+      const generator = project.generators.find(
+        (g) => g.id === activeGeneratorId,
+      );
       generate(activeGeneratorId, undefined, generator);
     }
   };
@@ -50,8 +54,11 @@ export function PreviewPanel(): React.ReactElement | null {
             disabled={!activeGeneratorId || isGenerating}
             className="flex-1"
           >
-            <RefreshCw size={14} className={`mr-1 ${isGenerating ? 'animate-spin' : ''}`} />
-            {isGenerating ? 'Generating...' : 'Generate'}
+            <RefreshCw
+              size={14}
+              className={`mr-1 ${isGenerating ? "animate-spin" : ""}`}
+            />
+            {isGenerating ? "Generating..." : "Generate"}
           </Button>
           <Button variant="secondary" size="sm" onClick={randomizeSeed}>
             <Shuffle size={14} />
@@ -60,7 +67,8 @@ export function PreviewPanel(): React.ReactElement | null {
 
         {/* Seed display */}
         <div className="text-xs text-text-muted">
-          Seed: <span className="font-mono text-text-secondary">{currentSeed}</span>
+          Seed:{" "}
+          <span className="font-mono text-text-secondary">{currentSeed}</span>
         </div>
 
         {/* Canvas */}
@@ -74,20 +82,28 @@ export function PreviewPanel(): React.ReactElement | null {
             </h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-text-muted">Rooms:</span>{' '}
-                <span className="text-text-primary">{lastResult.data.rooms.length}</span>
+                <span className="text-text-muted">Rooms:</span>{" "}
+                <span className="text-text-primary">
+                  {lastResult.data.rooms.length}
+                </span>
               </div>
               <div>
-                <span className="text-text-muted">Connections:</span>{' '}
-                <span className="text-text-primary">{lastResult.data.connections.length}</span>
+                <span className="text-text-muted">Connections:</span>{" "}
+                <span className="text-text-primary">
+                  {lastResult.data.connections.length}
+                </span>
               </div>
               <div>
-                <span className="text-text-muted">Spawn Points:</span>{' '}
-                <span className="text-text-primary">{lastResult.data.spawnPoints.length}</span>
+                <span className="text-text-muted">Spawn Points:</span>{" "}
+                <span className="text-text-primary">
+                  {lastResult.data.spawnPoints.length}
+                </span>
               </div>
               <div>
-                <span className="text-text-muted">Duration:</span>{' '}
-                <span className="text-text-primary">{lastResult.durationMs}ms</span>
+                <span className="text-text-muted">Duration:</span>{" "}
+                <span className="text-text-primary">
+                  {lastResult.durationMs}ms
+                </span>
               </div>
             </div>
           </div>
@@ -104,10 +120,10 @@ export function PreviewPanel(): React.ReactElement | null {
                 <div
                   key={result.constraintId}
                   className={`flex items-center gap-2 text-xs ${
-                    result.passed ? 'text-green-400' : 'text-red-400'
+                    result.passed ? "text-green-400" : "text-red-400"
                   }`}
                 >
-                  <span>{result.passed ? '✓' : '✗'}</span>
+                  <span>{result.passed ? "✓" : "✗"}</span>
                   <span>{result.message || result.constraintId}</span>
                 </div>
               ))}

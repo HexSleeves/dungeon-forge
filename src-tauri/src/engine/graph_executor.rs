@@ -6,11 +6,11 @@
 //! 3. Executing each node type to build the dungeon
 //! 4. Outputting at the Output node
 
+use super::room_generator::{Direction, RoomConfig, RoomGenerator, RoomShape};
 use crate::models::{
-    generator::{Generator, GraphNode, NodeType, Edge},
-    result::{DungeonLayout, GeneratedRoom, RoomConnection, SpawnPoint, LayoutPosition},
+    generator::{Edge, Generator, GraphNode, NodeType},
+    result::{DungeonLayout, GeneratedRoom, LayoutPosition, RoomConnection, SpawnPoint},
 };
-use super::room_generator::{RoomGenerator, RoomConfig, RoomShape, Direction};
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use std::collections::HashMap;
@@ -67,7 +67,9 @@ impl GraphExecutor {
         let mut ctx = ExecutionContext::default();
 
         // Find the start node
-        let start_node = graph.nodes.iter()
+        let start_node = graph
+            .nodes
+            .iter()
             .find(|n| matches!(n.node_type, NodeType::Start))
             .ok_or("No Start node found in graph")?;
 
@@ -81,7 +83,9 @@ impl GraphExecutor {
             LayoutPosition { x: 0.0, y: 0.0 }
         };
 
-        let exits = ctx.rooms.last()
+        let exits = ctx
+            .rooms
+            .last()
             .map(|r| vec![RoomGenerator::get_center(r)])
             .unwrap_or_default();
 
@@ -101,7 +105,9 @@ impl GraphExecutor {
         graph: &crate::models::generator::NodeGraph,
         ctx: &mut ExecutionContext,
     ) -> Result<(), String> {
-        let node = graph.nodes.iter()
+        let node = graph
+            .nodes
+            .iter()
             .find(|n| n.id == node_id)
             .ok_or_else(|| format!("Node {} not found", node_id))?;
 
@@ -169,16 +175,30 @@ impl GraphExecutor {
         Ok(())
     }
 
-    fn execute_room_node(&mut self, node: &GraphNode, ctx: &mut ExecutionContext) -> Result<(), String> {
+    fn execute_room_node(
+        &mut self,
+        node: &GraphNode,
+        ctx: &mut ExecutionContext,
+    ) -> Result<(), String> {
         let config = self.extract_room_config(&node.data.extra);
         let room_id = format!("room_{}", ctx.rooms.len());
 
-        let room = RoomGenerator::generate(&mut self.rng, &config, ctx.current_position.clone(), &room_id);
+        let room = RoomGenerator::generate(
+            &mut self.rng,
+            &config,
+            ctx.current_position.clone(),
+            &room_id,
+        );
 
         // Connect to previous room if exists
         if let Some(prev_room) = ctx.rooms.last() {
-            let from_door = RoomGenerator::get_door_position(prev_room, ctx.current_direction, &mut self.rng);
-            let to_door = RoomGenerator::get_door_position(&room, ctx.current_direction.opposite(), &mut self.rng);
+            let from_door =
+                RoomGenerator::get_door_position(prev_room, ctx.current_direction, &mut self.rng);
+            let to_door = RoomGenerator::get_door_position(
+                &room,
+                ctx.current_direction.opposite(),
+                &mut self.rng,
+            );
 
             ctx.connections.push(RoomConnection {
                 from_room_id: prev_room.id.clone(),
@@ -191,9 +211,13 @@ impl GraphExecutor {
         // Update current position for next room
         let spacing = self.rng.gen_range(3.0..8.0);
         match ctx.current_direction {
-            Direction::Right => ctx.current_position.x = room.bounds.x + room.bounds.width + spacing,
+            Direction::Right => {
+                ctx.current_position.x = room.bounds.x + room.bounds.width + spacing
+            }
             Direction::Left => ctx.current_position.x = room.bounds.x - spacing,
-            Direction::Down => ctx.current_position.y = room.bounds.y + room.bounds.height + spacing,
+            Direction::Down => {
+                ctx.current_position.y = room.bounds.y + room.bounds.height + spacing
+            }
             Direction::Up => ctx.current_position.y = room.bounds.y - spacing,
         }
 
@@ -201,18 +225,28 @@ impl GraphExecutor {
         Ok(())
     }
 
-    fn execute_room_chain_node(&mut self, node: &GraphNode, ctx: &mut ExecutionContext) -> Result<(), String> {
+    fn execute_room_chain_node(
+        &mut self,
+        node: &GraphNode,
+        ctx: &mut ExecutionContext,
+    ) -> Result<(), String> {
         let config = self.extract_room_config(&node.data.extra);
-        let count = node.data.extra.get("count")
+        let count = node
+            .data
+            .extra
+            .get("count")
             .and_then(|v| v.as_u64())
             .unwrap_or(3) as usize;
-        let linear = node.data.extra.get("linear")
+        let linear = node
+            .data
+            .extra
+            .get("linear")
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
         let base_id = format!("chain_{}", ctx.rooms.len());
         let start_pos = ctx.current_position.clone();
-        
+
         let chain_rooms = RoomGenerator::generate_chain(
             &mut self.rng,
             count,
@@ -224,8 +258,13 @@ impl GraphExecutor {
 
         // Connect chain to previous room
         if let (Some(prev_room), Some(first_chain_room)) = (ctx.rooms.last(), chain_rooms.first()) {
-            let from_door = RoomGenerator::get_door_position(prev_room, ctx.current_direction, &mut self.rng);
-            let to_door = RoomGenerator::get_door_position(first_chain_room, ctx.current_direction.opposite(), &mut self.rng);
+            let from_door =
+                RoomGenerator::get_door_position(prev_room, ctx.current_direction, &mut self.rng);
+            let to_door = RoomGenerator::get_door_position(
+                first_chain_room,
+                ctx.current_direction.opposite(),
+                &mut self.rng,
+            );
 
             ctx.connections.push(RoomConnection {
                 from_room_id: prev_room.id.clone(),
@@ -239,8 +278,13 @@ impl GraphExecutor {
         for i in 0..chain_rooms.len() - 1 {
             let from_room = &chain_rooms[i];
             let to_room = &chain_rooms[i + 1];
-            let from_door = RoomGenerator::get_door_position(from_room, ctx.current_direction, &mut self.rng);
-            let to_door = RoomGenerator::get_door_position(to_room, ctx.current_direction.opposite(), &mut self.rng);
+            let from_door =
+                RoomGenerator::get_door_position(from_room, ctx.current_direction, &mut self.rng);
+            let to_door = RoomGenerator::get_door_position(
+                to_room,
+                ctx.current_direction.opposite(),
+                &mut self.rng,
+            );
 
             ctx.connections.push(RoomConnection {
                 from_room_id: from_room.id.clone(),
@@ -254,9 +298,13 @@ impl GraphExecutor {
         if let Some(last) = chain_rooms.last() {
             let spacing = self.rng.gen_range(3.0..8.0);
             match ctx.current_direction {
-                Direction::Right => ctx.current_position.x = last.bounds.x + last.bounds.width + spacing,
+                Direction::Right => {
+                    ctx.current_position.x = last.bounds.x + last.bounds.width + spacing
+                }
                 Direction::Left => ctx.current_position.x = last.bounds.x - spacing,
-                Direction::Down => ctx.current_position.y = last.bounds.y + last.bounds.height + spacing,
+                Direction::Down => {
+                    ctx.current_position.y = last.bounds.y + last.bounds.height + spacing
+                }
                 Direction::Up => ctx.current_position.y = last.bounds.y - spacing,
             }
         }
@@ -301,8 +349,15 @@ impl GraphExecutor {
         Ok(())
     }
 
-    fn execute_spawn_point_node(&mut self, node: &GraphNode, ctx: &mut ExecutionContext) -> Result<(), String> {
-        let spawn_type = node.data.extra.get("spawnType")
+    fn execute_spawn_point_node(
+        &mut self,
+        node: &GraphNode,
+        ctx: &mut ExecutionContext,
+    ) -> Result<(), String> {
+        let spawn_type = node
+            .data
+            .extra
+            .get("spawnType")
             .and_then(|v| v.as_str())
             .unwrap_or("enemy");
 
@@ -323,8 +378,15 @@ impl GraphExecutor {
         Ok(())
     }
 
-    fn execute_encounter_node(&mut self, node: &GraphNode, ctx: &mut ExecutionContext) -> Result<(), String> {
-        let enemy_count = node.data.extra.get("enemyCount")
+    fn execute_encounter_node(
+        &mut self,
+        node: &GraphNode,
+        ctx: &mut ExecutionContext,
+    ) -> Result<(), String> {
+        let enemy_count = node
+            .data
+            .extra
+            .get("enemyCount")
             .and_then(|v| v.as_u64())
             .unwrap_or(2) as usize;
 
@@ -335,8 +397,15 @@ impl GraphExecutor {
         Ok(())
     }
 
-    fn execute_loot_drop_node(&mut self, node: &GraphNode, ctx: &mut ExecutionContext) -> Result<(), String> {
-        let item_count = node.data.extra.get("itemCount")
+    fn execute_loot_drop_node(
+        &mut self,
+        node: &GraphNode,
+        ctx: &mut ExecutionContext,
+    ) -> Result<(), String> {
+        let item_count = node
+            .data
+            .extra
+            .get("itemCount")
             .and_then(|v| v.as_u64())
             .unwrap_or(1) as usize;
 
@@ -372,7 +441,7 @@ impl GraphExecutor {
         ctx: &mut ExecutionContext,
     ) -> Result<(), String> {
         let outgoing_edges = self.find_outgoing_edges(&node.id, &graph.edges);
-        
+
         // Execute all connected nodes in sequence
         for edge in outgoing_edges {
             self.execute_node(&edge.target.node_id, graph, ctx)?;
@@ -387,12 +456,15 @@ impl GraphExecutor {
         graph: &crate::models::generator::NodeGraph,
         ctx: &mut ExecutionContext,
     ) -> Result<(), String> {
-        let iterations = node.data.extra.get("iterations")
+        let iterations = node
+            .data
+            .extra
+            .get("iterations")
             .and_then(|v| v.as_u64())
             .unwrap_or(3) as usize;
 
         let outgoing_edges = self.find_outgoing_edges(&node.id, &graph.edges);
-        
+
         for _ in 0..iterations {
             for edge in &outgoing_edges {
                 // Skip if it's a loop-back edge (target is before source in graph)
@@ -427,7 +499,8 @@ impl GraphExecutor {
             config.shape = RoomShape::from(v);
         }
         if let Some(v) = extra.get("tags").and_then(|v| v.as_array()) {
-            config.tags = v.iter()
+            config.tags = v
+                .iter()
                 .filter_map(|t| t.as_str().map(String::from))
                 .collect();
         }
@@ -446,7 +519,8 @@ impl GraphExecutor {
     }
 
     fn find_outgoing_edges<'a>(&self, node_id: &str, edges: &'a [Edge]) -> Vec<&'a Edge> {
-        edges.iter()
+        edges
+            .iter()
             .filter(|e| e.source.node_id == node_id)
             .collect()
     }

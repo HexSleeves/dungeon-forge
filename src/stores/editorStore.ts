@@ -1,27 +1,27 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface EditorState {
   // Selection
   selectedNodeIds: string[];
   selectedEdgeIds: string[];
-  
+
   // Viewport
   zoom: number;
   pan: { x: number; y: number };
-  
+
   // UI state
-  activeTool: 'select' | 'pan' | 'connect';
+  activeTool: "select" | "pan" | "connect";
   propertiesPanelOpen: boolean;
   constraintsPanelOpen: boolean;
   previewPanelOpen: boolean;
-  
+
   // Actions
   selectNodes: (ids: string[], append?: boolean) => void;
   selectEdges: (ids: string[], append?: boolean) => void;
   clearSelection: () => void;
   setZoom: (zoom: number) => void;
   setPan: (pan: { x: number; y: number }) => void;
-  setActiveTool: (tool: EditorState['activeTool']) => void;
+  setActiveTool: (tool: EditorState["activeTool"]) => void;
   togglePropertiesPanel: () => void;
   toggleConstraintsPanel: () => void;
   togglePreviewPanel: () => void;
@@ -32,21 +32,25 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedEdgeIds: [],
   zoom: 1,
   pan: { x: 0, y: 0 },
-  activeTool: 'select',
+  activeTool: "select",
   propertiesPanelOpen: true,
   constraintsPanelOpen: false,
   previewPanelOpen: true,
 
   selectNodes: (ids, append = false) => {
     set((state) => ({
-      selectedNodeIds: append ? [...new Set([...state.selectedNodeIds, ...ids])] : ids,
+      selectedNodeIds: append
+        ? [...new Set([...state.selectedNodeIds, ...ids])]
+        : ids,
       selectedEdgeIds: append ? state.selectedEdgeIds : [],
     }));
   },
 
   selectEdges: (ids, append = false) => {
     set((state) => ({
-      selectedEdgeIds: append ? [...new Set([...state.selectedEdgeIds, ...ids])] : ids,
+      selectedEdgeIds: append
+        ? [...new Set([...state.selectedEdgeIds, ...ids])]
+        : ids,
       selectedNodeIds: append ? state.selectedNodeIds : [],
     }));
   },

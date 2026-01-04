@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -13,14 +13,14 @@ import {
   BackgroundVariant,
   type NodeChange,
   type EdgeChange,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 
-import { nodeTypes } from './nodes';
-import { NodeContextMenu } from './NodeContextMenu';
-import { useProjectStore } from '../../stores/projectStore';
-import { useEditorStore } from '../../stores/editorStore';
-import type { NodeType, GraphNode } from '../../types';
+import { nodeTypes } from "./nodes";
+import { NodeContextMenu } from "./NodeContextMenu";
+import { useProjectStore } from "../../stores/projectStore";
+import { useEditorStore } from "../../stores/editorStore";
+import type { NodeType, GraphNode } from "../../types";
 
 // Convert our GraphNode to ReactFlow Node
 function toReactFlowNode(node: GraphNode): Node {
@@ -38,7 +38,7 @@ function toReactFlowNode(node: GraphNode): Node {
 }
 
 // Convert our Edge to ReactFlow Edge
-function toReactFlowEdge(edge: import('../../types').Edge): Edge {
+function toReactFlowEdge(edge: import("../../types").Edge): Edge {
   return {
     id: edge.id,
     source: edge.source.nodeId,
@@ -68,7 +68,9 @@ export function NodeEditor(): React.ReactElement {
   const addProjectEdge = useProjectStore((state) => state.addEdge);
   const deleteEdge = useProjectStore((state) => state.deleteEdge);
 
-  const activeGenerator = project?.generators.find(g => g.id === activeGeneratorId);
+  const activeGenerator = project?.generators.find(
+    (g) => g.id === activeGeneratorId,
+  );
 
   const selectNodes = useEditorStore((state) => state.selectNodes);
   const selectEdges = useEditorStore((state) => state.selectEdges);
@@ -76,12 +78,12 @@ export function NodeEditor(): React.ReactElement {
   // Convert project graph to ReactFlow format
   const initialNodes = useMemo(
     () => activeGenerator?.graph.nodes.map(toReactFlowNode) ?? [],
-    [activeGenerator?.graph.nodes]
+    [activeGenerator?.graph.nodes],
   );
 
   const initialEdges = useMemo(
     () => activeGenerator?.graph.edges.map(toReactFlowEdge) ?? [],
-    [activeGenerator?.graph.edges]
+    [activeGenerator?.graph.edges],
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -102,15 +104,19 @@ export function NodeEditor(): React.ReactElement {
       onNodesChange(changes);
 
       changes.forEach((change) => {
-        if (change.type === 'position' && change.position && change.dragging === false) {
+        if (
+          change.type === "position" &&
+          change.position &&
+          change.dragging === false
+        ) {
           moveNode(change.id, change.position);
         }
-        if (change.type === 'remove') {
+        if (change.type === "remove") {
           deleteNode(change.id);
         }
       });
     },
-    [onNodesChange, moveNode, deleteNode]
+    [onNodesChange, moveNode, deleteNode],
   );
 
   // Handle edge changes
@@ -119,12 +125,12 @@ export function NodeEditor(): React.ReactElement {
       onEdgesChange(changes);
 
       changes.forEach((change) => {
-        if (change.type === 'remove') {
+        if (change.type === "remove") {
           deleteEdge(change.id);
         }
       });
     },
-    [onEdgesChange, deleteEdge]
+    [onEdgesChange, deleteEdge],
   );
 
   // Handle new connections
@@ -132,25 +138,33 @@ export function NodeEditor(): React.ReactElement {
     (connection: Connection) => {
       if (connection.source && connection.target) {
         addProjectEdge(
-          { nodeId: connection.source, portId: connection.sourceHandle ?? 'out' },
-          { nodeId: connection.target, portId: connection.targetHandle ?? 'in' }
+          {
+            nodeId: connection.source,
+            portId: connection.sourceHandle ?? "out",
+          },
+          {
+            nodeId: connection.target,
+            portId: connection.targetHandle ?? "in",
+          },
         );
       }
     },
-    [addProjectEdge]
+    [addProjectEdge],
   );
 
   // Handle drag and drop
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
+    event.dataTransfer.dropEffect = "copy";
   }, []);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const type = event.dataTransfer.getData('application/dungeon-forge-node') as NodeType;
+      const type = event.dataTransfer.getData(
+        "application/dungeon-forge-node",
+      ) as NodeType;
       if (!type || !reactFlowWrapper.current) return;
 
       const bounds = reactFlowWrapper.current.getBoundingClientRect();
@@ -161,7 +175,7 @@ export function NodeEditor(): React.ReactElement {
 
       addNode(type, position);
     },
-    [addNode]
+    [addNode],
   );
 
   // Handle selection
@@ -170,7 +184,7 @@ export function NodeEditor(): React.ReactElement {
       selectNodes(nodes.map((n) => n.id));
       selectEdges(edges.map((e) => e.id));
     },
-    [selectNodes, selectEdges]
+    [selectNodes, selectEdges],
   );
 
   // Handle node click for single selection
@@ -179,7 +193,7 @@ export function NodeEditor(): React.ReactElement {
       selectNodes([node.id]);
       setContextMenu(null); // Close context menu on click
     },
-    [selectNodes]
+    [selectNodes],
   );
 
   // Handle node context menu (right-click)
@@ -193,7 +207,7 @@ export function NodeEditor(): React.ReactElement {
         y: event.clientY,
       });
     },
-    [selectNodes]
+    [selectNodes],
   );
 
   // Handle pane click to close context menu
@@ -206,7 +220,9 @@ export function NodeEditor(): React.ReactElement {
       <div className="flex-1 flex items-center justify-center bg-bg-primary">
         <div className="text-center text-text-muted">
           <p className="text-lg mb-2">No generator selected</p>
-          <p className="text-sm">Create or select a generator to start editing</p>
+          <p className="text-sm">
+            Create or select a generator to start editing
+          </p>
         </div>
       </div>
     );
@@ -231,11 +247,11 @@ export function NodeEditor(): React.ReactElement {
         snapToGrid
         snapGrid={[16, 16]}
         defaultEdgeOptions={{
-          type: 'smoothstep',
-          style: { strokeWidth: 2, stroke: '#3b82f6' },
+          type: "smoothstep",
+          style: { strokeWidth: 2, stroke: "#3b82f6" },
           animated: true,
         }}
-        connectionLineStyle={{ strokeWidth: 2, stroke: '#60a5fa' }}
+        connectionLineStyle={{ strokeWidth: 2, stroke: "#60a5fa" }}
         proOptions={{ hideAttribution: true }}
       >
         <Background
@@ -254,21 +270,21 @@ export function NodeEditor(): React.ReactElement {
           className="!bg-bg-secondary !border-slate-700 !rounded-lg"
           nodeColor={(node) => {
             const colors: Record<string, string> = {
-              start: '#22c55e',
-              output: '#ef4444',
-              room: '#3b82f6',
-              room_chain: '#3b82f6',
-              branch: '#8b5cf6',
-              merge: '#8b5cf6',
-              spawn_point: '#f59e0b',
-              loot_drop: '#f59e0b',
+              start: "#22c55e",
+              output: "#ef4444",
+              room: "#3b82f6",
+              room_chain: "#3b82f6",
+              branch: "#8b5cf6",
+              merge: "#8b5cf6",
+              spawn_point: "#f59e0b",
+              loot_drop: "#f59e0b",
             };
-            return colors[node.type ?? ''] ?? '#64748b';
+            return colors[node.type ?? ""] ?? "#64748b";
           }}
           maskColor="rgba(15, 23, 42, 0.8)"
         />
       </ReactFlow>
-      
+
       {/* Context Menu */}
       {contextMenu && (
         <NodeContextMenu

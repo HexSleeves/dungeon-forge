@@ -1,6 +1,6 @@
-import React from 'react';
-import { Copy, Trash2, Edit, Layers } from 'lucide-react';
-import { useProjectStore } from '../../stores/projectStore';
+import React from "react";
+import { Copy, Trash2, Edit, Layers } from "lucide-react";
+import { useProjectStore } from "../../stores/projectStore";
 
 interface NodeContextMenuProps {
   nodeId: string;
@@ -9,7 +9,12 @@ interface NodeContextMenuProps {
   onClose: () => void;
 }
 
-export function NodeContextMenu({ nodeId, x, y, onClose }: NodeContextMenuProps): React.ReactElement {
+export function NodeContextMenu({
+  nodeId,
+  x,
+  y,
+  onClose,
+}: NodeContextMenuProps): React.ReactElement {
   const deleteNode = useProjectStore((state) => state.deleteNode);
 
   const handleDelete = () => {
@@ -19,16 +24,27 @@ export function NodeContextMenu({ nodeId, x, y, onClose }: NodeContextMenuProps)
 
   const handleDuplicate = () => {
     // TODO: Implement node duplication
-    console.log('Duplicate node:', nodeId);
+    console.log("Duplicate node:", nodeId);
     onClose();
   };
 
   const menuItems = [
-    { icon: Edit, label: 'Edit Properties', shortcut: 'E', action: onClose },
-    { icon: Copy, label: 'Duplicate', shortcut: 'Ctrl+D', action: handleDuplicate },
-    { icon: Layers, label: 'Send to Back', shortcut: null, action: onClose },
-    { type: 'separator' as const },
-    { icon: Trash2, label: 'Delete', shortcut: 'Del', action: handleDelete, danger: true },
+    { icon: Edit, label: "Edit Properties", shortcut: "E", action: onClose },
+    {
+      icon: Copy,
+      label: "Duplicate",
+      shortcut: "Ctrl+D",
+      action: handleDuplicate,
+    },
+    { icon: Layers, label: "Send to Back", shortcut: null, action: onClose },
+    { type: "separator" as const },
+    {
+      icon: Trash2,
+      label: "Delete",
+      shortcut: "Del",
+      action: handleDelete,
+      danger: true,
+    },
   ];
 
   return (
@@ -49,7 +65,7 @@ export function NodeContextMenu({ nodeId, x, y, onClose }: NodeContextMenuProps)
         style={{ left: x, top: y }}
       >
         {menuItems.map((item, index) =>
-          item.type === 'separator' ? (
+          item.type === "separator" ? (
             <div key={index} className="border-t border-slate-700 my-1" />
           ) : (
             <button
@@ -57,9 +73,10 @@ export function NodeContextMenu({ nodeId, x, y, onClose }: NodeContextMenuProps)
               onClick={item.action}
               className={`
                 w-full flex items-center gap-3 px-3 py-2 text-sm
-                ${item.danger
-                  ? 'text-red-400 hover:bg-red-500/10'
-                  : 'text-text-primary hover:bg-bg-tertiary'
+                ${
+                  item.danger
+                    ? "text-red-400 hover:bg-red-500/10"
+                    : "text-text-primary hover:bg-bg-tertiary"
                 }
               `}
             >
@@ -69,7 +86,7 @@ export function NodeContextMenu({ nodeId, x, y, onClose }: NodeContextMenuProps)
                 <span className="text-xs text-text-muted">{item.shortcut}</span>
               )}
             </button>
-          )
+          ),
         )}
       </div>
     </>
