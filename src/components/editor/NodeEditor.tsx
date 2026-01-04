@@ -19,7 +19,11 @@ import "@xyflow/react/dist/style.css";
 import { nodeTypes } from "./nodes";
 import { NodeContextMenu } from "./NodeContextMenu";
 import { useProjectStore } from "../../stores/projectStore";
-import { useEditorStore } from "../../stores/editorStore";
+import {
+  useEditorStore,
+  getDraggedNodeType,
+  setDraggedNodeType,
+} from "../../stores/editorStore";
 import type { NodeType, GraphNode } from "../../types";
 
 // Convert our GraphNode to ReactFlow Node
@@ -162,9 +166,16 @@ export function NodeEditor(): React.ReactElement {
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const type = event.dataTransfer.getData(
+      // Try to get type from dataTransfer first, fall back to global state
+      let type = event.dataTransfer.getData(
         "application/dungeon-forge-node",
       ) as NodeType;
+
+      // Fallback for Tauri webview where dataTransfer may not work
+      if (!type) {
+        type = getDraggedNodeType() as NodeType;
+      }
+
       if (!type || !reactFlowWrapper.current) return;
 
       const bounds = reactFlowWrapper.current.getBoundingClientRect();
@@ -174,6 +185,9 @@ export function NodeEditor(): React.ReactElement {
       };
 
       addNode(type, position);
+
+      // Clear the global drag state
+      setDraggedNodeType(null);
     },
     [addNode],
   );

@@ -1,4 +1,17 @@
 import { create } from "zustand";
+import type { NodeType } from "../types";
+
+// Global drag state for Tauri compatibility
+// (dataTransfer doesn't always work reliably in webviews)
+let draggedNodeType: NodeType | null = null;
+
+export function setDraggedNodeType(type: NodeType | null) {
+  draggedNodeType = type;
+}
+
+export function getDraggedNodeType(): NodeType | null {
+  return draggedNodeType;
+}
 
 interface EditorState {
   // Selection

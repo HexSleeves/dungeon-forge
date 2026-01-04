@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useProjectStore } from "../../stores/projectStore";
+import { setDraggedNodeType } from "../../stores/editorStore";
 import { Button } from "../ui/Button";
 import { Dialog } from "../ui/Dialog";
 import { Input } from "../ui/Input";
@@ -94,6 +95,13 @@ export function Sidebar(): React.ReactElement {
   const handleDragStart = (e: React.DragEvent, nodeType: NodeType) => {
     e.dataTransfer.setData("application/dungeon-forge-node", nodeType);
     e.dataTransfer.effectAllowed = "copy";
+    // Also set in global state for Tauri compatibility
+    setDraggedNodeType(nodeType);
+  };
+
+  const handleDragEnd = () => {
+    // Clear the global drag state
+    setDraggedNodeType(null);
   };
 
   return (
@@ -176,6 +184,7 @@ export function Sidebar(): React.ReactElement {
                       key={node.type}
                       draggable
                       onDragStart={(e) => handleDragStart(e, node.type)}
+                      onDragEnd={handleDragEnd}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-grab hover:bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors active:cursor-grabbing"
                     >
                       <node.icon size={14} />
