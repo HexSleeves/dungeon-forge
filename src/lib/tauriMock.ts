@@ -173,110 +173,117 @@ function generateDungeon(seed: number): DungeonLayout {
   };
 }
 
-// Mock Tauri invoke commands
+// Type-safe command handlers
+async function openProject(args: { path: string }): Promise<Project> {
+  console.log('Mock: open_project', args.path);
+  throw new Error('File operations not available in browser mode');
+}
+
+async function saveProject(args: { project: Project; path: string }): Promise<void> {
+  console.log('Mock: save_project', args.path, args.project);
+  localStorage.setItem(`dungeon-forge-project-${args.project.id}`, JSON.stringify(args.project));
+}
+
+async function generateOnce(args: { request: GenerationRequest }): Promise<GenerationResult> {
+  const { request } = args;
+  const startTime = performance.now();
+
+  // Simulate some async delay
+  await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 200));
+
+  const dungeon = generateDungeon(request.seed);
+  const endTime = performance.now();
+
+  return {
+    seed: request.seed,
+    timestamp: Date.now(),
+    success: true,
+    data: dungeon,
+    constraintResults: [
+      { constraintId: 'min-rooms', passed: dungeon.rooms.length >= 5, message: `Room count: ${dungeon.rooms.length}` },
+      { constraintId: 'connected', passed: true, message: 'All rooms connected' },
+      { constraintId: 'has-exit', passed: dungeon.exits.length > 0, message: 'Exit exists' },
+    ],
+    metadata: {
+      nodeExecutions: dungeon.rooms.length * 3,
+      retryCount: 0,
+    },
+    errors: [],
+    durationMs: Math.round(endTime - startTime),
+  };
+}
+
+async function runSimulation(args: { config: SimulationConfig }): Promise<SimulationResults> {
+  const { config } = args;
+  const startTime = performance.now();
+  const results: GenerationResult[] = [];
+
+  for (let i = 0; i < config.runCount; i++) {
+    const seed = (config.seedStart ?? 0) + i;
+    const result = await generateOnce({
+      request: { generatorId: config.generatorId, seed },
+    });
+    results.push(result);
+  }
+
+  const roomCounts = results.map((r) => r.data?.rooms.length ?? 0);
+  const pathLengths = results.map((r) => r.data?.connections.length ?? 0);
+  const enemyCounts = results.map(
+    (r) => r.data?.rooms.reduce((sum, room) => sum + room.entities.filter((e) => e.type === 'enemy').length, 0) ?? 0
+  );
+
+  const calcStats = (values: number[]) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    const sum = values.reduce((a, b) => a + b, 0);
+    const mean = sum / values.length;
+    const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
+
+    return {
+      min: sorted[0],
+      max: sorted[sorted.length - 1],
+      mean,
+      median: sorted[Math.floor(sorted.length / 2)],
+      stdDev: Math.sqrt(variance),
+      percentiles: {
+        p5: sorted[Math.floor(sorted.length * 0.05)],
+        p25: sorted[Math.floor(sorted.length * 0.25)],
+        p75: sorted[Math.floor(sorted.length * 0.75)],
+        p95: sorted[Math.floor(sorted.length * 0.95)],
+      },
+      histogram: [],
+    };
+  };
+
+  return {
+    config,
+    runs: config.runCount,
+    successRate: results.filter((r) => r.success).length / results.length,
+    durationMs: Math.round(performance.now() - startTime),
+    statistics: {
+      roomCount: calcStats(roomCounts),
+      pathLength: calcStats(pathLengths),
+      enemyCount: calcStats(enemyCounts),
+      itemCount: calcStats(roomCounts.map(() => 0)),
+    },
+    constraintResults: {
+      'min-rooms': { passRate: 1.0, violations: 0 },
+      connected: { passRate: 1.0, violations: 0 },
+    },
+    warnings: [],
+  };
+}
+
+async function cancelSimulation(): Promise<void> {
+  // No-op in mock
+}
+
+// Command dispatcher
 const commands: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
-  async open_project({ path }: { path: string }): Promise<Project> {
-    // Simulate loading from file
-    console.log('Mock: open_project', path);
-    throw new Error('File operations not available in browser mode');
-  },
-
-  async save_project({ project, path }: { project: Project; path: string }): Promise<void> {
-    console.log('Mock: save_project', path, project);
-    // In browser, we could save to localStorage
-    localStorage.setItem(`dungeon-forge-project-${project.id}`, JSON.stringify(project));
-  },
-
-  async generate_once({ request }: { request: GenerationRequest }): Promise<GenerationResult> {
-    const startTime = performance.now();
-
-    // Simulate some async delay
-    await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 200));
-
-    const dungeon = generateDungeon(request.seed);
-    const endTime = performance.now();
-
-    return {
-      seed: request.seed,
-      timestamp: Date.now(),
-      success: true,
-      data: dungeon,
-      constraintResults: [
-        { constraintId: 'min-rooms', passed: dungeon.rooms.length >= 5, message: `Room count: ${dungeon.rooms.length}` },
-        { constraintId: 'connected', passed: true, message: 'All rooms connected' },
-        { constraintId: 'has-exit', passed: dungeon.exits.length > 0, message: 'Exit exists' },
-      ],
-      metadata: {
-        nodeExecutions: dungeon.rooms.length * 3,
-        retryCount: 0,
-      },
-      errors: [],
-      durationMs: Math.round(endTime - startTime),
-    };
-  },
-
-  async run_simulation({ config }: { config: SimulationConfig }): Promise<SimulationResults> {
-    const startTime = performance.now();
-    const results: GenerationResult[] = [];
-
-    for (let i = 0; i < config.runCount; i++) {
-      const seed = (config.seedStart ?? 0) + i;
-      const result = (await commands.generate_once({
-        request: { generatorId: config.generatorId, seed },
-      })) as GenerationResult;
-      results.push(result);
-    }
-
-    const roomCounts = results.map((r) => r.data?.rooms.length ?? 0);
-    const pathLengths = results.map((r) => r.data?.connections.length ?? 0);
-    const enemyCounts = results.map(
-      (r) => r.data?.rooms.reduce((sum, room) => sum + room.entities.filter((e) => e.type === 'enemy').length, 0) ?? 0
-    );
-
-    const calcStats = (values: number[]) => {
-      const sorted = [...values].sort((a, b) => a - b);
-      const sum = values.reduce((a, b) => a + b, 0);
-      const mean = sum / values.length;
-      const variance = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
-
-      return {
-        min: sorted[0],
-        max: sorted[sorted.length - 1],
-        mean,
-        median: sorted[Math.floor(sorted.length / 2)],
-        stdDev: Math.sqrt(variance),
-        percentiles: {
-          p5: sorted[Math.floor(sorted.length * 0.05)],
-          p25: sorted[Math.floor(sorted.length * 0.25)],
-          p75: sorted[Math.floor(sorted.length * 0.75)],
-          p95: sorted[Math.floor(sorted.length * 0.95)],
-        },
-        histogram: [],
-      };
-    };
-
-    return {
-      config,
-      runs: config.runCount,
-      successRate: results.filter((r) => r.success).length / results.length,
-      durationMs: Math.round(performance.now() - startTime),
-      statistics: {
-        roomCount: calcStats(roomCounts),
-        pathLength: calcStats(pathLengths),
-        enemyCount: calcStats(enemyCounts),
-        itemCount: calcStats(roomCounts.map(() => 0)), // placeholder
-      },
-      constraintResults: {
-        'min-rooms': { passRate: 1.0, violations: 0 },
-        connected: { passRate: 1.0, violations: 0 },
-      },
-      warnings: [],
-    };
-  },
-
-  async cancel_simulation(): Promise<void> {
-    // No-op in mock
-  },
+  open_project: (args) => openProject(args as { path: string }),
+  save_project: (args) => saveProject(args as { project: Project; path: string }),
+  generate_once: (args) => generateOnce(args as { request: GenerationRequest }),
+  run_simulation: (args) => runSimulation(args as { config: SimulationConfig }),
+  cancel_simulation: () => cancelSimulation(),
 };
 
 // Check if we're in Tauri environment

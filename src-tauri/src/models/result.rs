@@ -8,6 +8,9 @@ pub struct GenerationRequest {
     pub seed: u64,
     #[serde(default)]
     pub parameters: HashMap<String, serde_json::Value>,
+    /// The full generator data (optional - if not provided, uses simple generation)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generator: Option<crate::models::generator::Generator>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,3 +1,4 @@
+use crate::engine::GraphExecutor;
 use crate::models::{
     GenerationRequest, GenerationResult, DungeonLayout, GeneratedRoom, RoomConnection,
     SpawnPoint, LayoutPosition, Rectangle, GenerationMetadata, ConstraintResult,
@@ -14,11 +15,39 @@ use tauri::command;
 pub fn generate_once(request: GenerationRequest) -> Result<GenerationResult, String> {
     let start = Instant::now();
     
-    // Create seeded RNG for deterministic generation
-    let mut rng = ChaCha8Rng::seed_from_u64(request.seed);
-    
-    // Simple procedural dungeon generation for demo purposes
-    let result = generate_dungeon(&mut rng);
+    // If we have a generator with a graph, use the graph executor
+    let (result, node_executions) = if let Some(ref generator) = request.generator {
+        // Use graph-based generation
+        let mut executor = GraphExecutor::new(request.seed, request.parameters.clone());
+        match executor.execute(generator) {
+            Ok(layout) => (layout, executor.node_executions()),
+            Err(e) => {
+                // Fall back to simple generation on error
+                let mut rng = ChaCha8Rng::seed_from_u64(request.seed);
+                let layout = generate_dungeon(&mut rng);
+                return Ok(GenerationResult {
+                    seed: request.seed,
+                    timestamp: std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs(),
+                    success: false,
+                    data: Some(layout),
+                    constraint_results: vec![],
+                    metadata: GenerationMetadata {
+                        node_executions: 0,
+                        retry_count: 0,
+                    },
+                    errors: vec![format!("Graph execution error: {}", e)],
+                    duration_ms: start.elapsed().as_millis() as u64,
+                });
+            }
+        }
+    } else {
+        // Fall back to simple procedural generation
+        let mut rng = ChaCha8Rng::seed_from_u64(request.seed);
+        (generate_dungeon(&mut rng), 10)
+    };
     
     let duration = start.elapsed();
     
@@ -38,7 +67,7 @@ pub fn generate_once(request: GenerationRequest) -> Result<GenerationResult, Str
             },
         ],
         metadata: GenerationMetadata {
-            node_executions: 10,
+            node_executions,
             retry_count: 0,
         },
         errors: vec![],

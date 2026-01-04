@@ -42,7 +42,7 @@ export function NodeContextMenu({ nodeId, x, y, onClose }: NodeContextMenuProps)
           onClose();
         }}
       />
-      
+
       {/* Menu */}
       <div
         className="fixed z-50 min-w-[180px] bg-bg-secondary border border-slate-700 rounded-lg shadow-xl py-1"

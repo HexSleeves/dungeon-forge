@@ -6,7 +6,6 @@ import { useEditorStore } from '../../../stores/editorStore';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
 import { Button } from '../../ui/Button';
-import { Tooltip } from '../../ui/Tooltip';
 
 // Branch weights editor with visual sliders
 function BranchWeightsEditor({

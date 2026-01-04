@@ -1,6 +1,11 @@
-import { create } from 'zustand';
-import { invoke } from '../lib/invoke';
-import type { GenerationResult, SimulationConfig, SimulationResults } from '../types';
+import { create } from "zustand";
+import { invoke } from "../lib/invoke";
+import type {
+  GenerationResult,
+  SimulationConfig,
+  SimulationResults,
+  Generator,
+} from "../types";
 
 interface GenerationState {
   // Current generation
@@ -8,17 +13,17 @@ interface GenerationState {
   lastResult: GenerationResult | null;
   isGenerating: boolean;
   error: string | null;
-  
+
   // Simulation
   simulationConfig: SimulationConfig | null;
   simulationResults: SimulationResults | null;
   simulationProgress: number;
   isSimulating: boolean;
-  
+
   // Actions
   setSeed: (seed: number) => void;
   randomizeSeed: () => void;
-  generate: (generatorId: string, seed?: number) => Promise<void>;
+  generate: (generatorId: string, seed?: number, generator?: Generator) => Promise<void>;
   runSimulation: (config: SimulationConfig) => Promise<void>;
   cancelSimulation: () => void;
   clearResults: () => void;
@@ -42,19 +47,20 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
     set({ currentSeed: Math.floor(Math.random() * 2147483647) });
   },
 
-  generate: async (generatorId, seed) => {
+  generate: async (generatorId, seed, generator) => {
     const actualSeed = seed ?? get().currentSeed;
     set({ isGenerating: true, error: null });
-    
+
     try {
-      const result = await invoke<GenerationResult>('generate_once', {
+      const result = await invoke<GenerationResult>("generate_once", {
         request: {
           generatorId,
           seed: actualSeed,
           parameters: {},
+          generator,
         },
       });
-      
+
       set({
         lastResult: result,
         currentSeed: actualSeed,
@@ -76,9 +82,11 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
       simulationResults: null,
       error: null,
     });
-    
+
     try {
-      const results = await invoke<SimulationResults>('run_simulation', { config });
+      const results = await invoke<SimulationResults>("run_simulation", {
+        config,
+      });
       set({
         simulationResults: results,
         isSimulating: false,
@@ -93,7 +101,7 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
   },
 
   cancelSimulation: () => {
-    invoke('cancel_simulation').catch(console.error);
+    invoke("cancel_simulation").catch(console.error);
     set({ isSimulating: false });
   },
 

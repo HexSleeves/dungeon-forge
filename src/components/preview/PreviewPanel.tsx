@@ -17,12 +17,14 @@ export function PreviewPanel(): React.ReactElement | null {
   const lastResult = useGenerationStore((state) => state.lastResult);
 
   const activeGeneratorId = useProjectStore((state) => state.activeGeneratorId);
+  const project = useProjectStore((state) => state.project);
 
   if (!previewPanelOpen) return null;
 
   const handleGenerate = () => {
-    if (activeGeneratorId) {
-      generate(activeGeneratorId);
+    if (activeGeneratorId && project) {
+      const generator = project.generators.find(g => g.id === activeGeneratorId);
+      generate(activeGeneratorId, undefined, generator);
     }
   };
 

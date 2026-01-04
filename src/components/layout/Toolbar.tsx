@@ -57,8 +57,9 @@ export function Toolbar(): React.ReactElement {
   };
 
   const handleGenerate = () => {
-    if (activeGeneratorId) {
-      generate(activeGeneratorId);
+    if (activeGeneratorId && project) {
+      const generator = project.generators.find(g => g.id === activeGeneratorId);
+      generate(activeGeneratorId, undefined, generator);
     }
   };
 

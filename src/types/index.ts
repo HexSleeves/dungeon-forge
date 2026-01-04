@@ -2,42 +2,42 @@
 
 export type NodeType =
   // Structural nodes
-  | 'start'
-  | 'output'
-  | 'subgraph'
+  | "start"
+  | "output"
+  | "subgraph"
   // Room/Space nodes
-  | 'room'
-  | 'room_chain'
-  | 'branch'
-  | 'merge'
+  | "room"
+  | "room_chain"
+  | "branch"
+  | "merge"
   // Content nodes
-  | 'spawn_point'
-  | 'loot_drop'
-  | 'encounter'
-  | 'prop'
+  | "spawn_point"
+  | "loot_drop"
+  | "encounter"
+  | "prop"
   // Logic nodes
-  | 'random_select'
-  | 'sequence'
-  | 'condition'
-  | 'loop'
+  | "random_select"
+  | "sequence"
+  | "condition"
+  | "loop"
   // Distribution nodes
-  | 'distribution'
-  | 'curve'
-  | 'table';
+  | "distribution"
+  | "curve"
+  | "table";
 
-export type GeneratorType = 'dungeon' | 'loot' | 'encounter' | 'custom';
+export type GeneratorType = "dungeon" | "loot" | "encounter" | "custom";
 
 export type ConstraintType =
-  | 'distance'
-  | 'count'
-  | 'density'
-  | 'progression'
-  | 'required'
-  | 'forbidden'
-  | 'connected'
-  | 'custom';
+  | "distance"
+  | "count"
+  | "density"
+  | "progression"
+  | "required"
+  | "forbidden"
+  | "connected"
+  | "custom";
 
-export type ConstraintSeverity = 'error' | 'warning';
+export type ConstraintSeverity = "error" | "warning";
 
 export interface Size {
   w: number;
@@ -58,7 +58,7 @@ export interface Rectangle {
 
 export interface Port {
   id: string;
-  type: 'input' | 'output';
+  type: "input" | "output";
   dataType: string;
   label?: string;
 }
@@ -117,7 +117,7 @@ export interface Constraint {
 
 export interface Parameter {
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'select';
+  type: "string" | "number" | "boolean" | "select";
   default: unknown;
   min?: number;
   max?: number;
@@ -142,7 +142,7 @@ export interface Generator {
 }
 
 export interface ExportConfig {
-  defaultTarget: 'json' | 'typescript' | 'rust' | 'csharp' | 'gdscript';
+  defaultTarget: "json" | "typescript" | "rust" | "csharp" | "gdscript";
   outputDir: string;
   includeRuntime: boolean;
 }
@@ -230,6 +230,7 @@ export interface GenerationRequest {
   generatorId: string;
   seed: number;
   parameters?: Record<string, unknown>;
+  generator?: Generator;
 }
 
 // Simulation types
