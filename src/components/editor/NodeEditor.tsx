@@ -160,31 +160,47 @@ export function NodeEditor(): React.ReactElement {
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
+    console.log("[NodeEditor] onDragOver triggered");
   }, []);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      console.log("[NodeEditor] onDrop triggered");
+      console.log("[NodeEditor] event.clientX:", event.clientX, "event.clientY:", event.clientY);
 
       // Try to get type from dataTransfer first, fall back to global state
       let type = event.dataTransfer.getData(
         "application/dungeon-forge-node",
       ) as NodeType;
+      console.log("[NodeEditor] dataTransfer type:", type, "(empty string means not available)");
 
       // Fallback for Tauri webview where dataTransfer may not work
       if (!type) {
         type = getDraggedNodeType() as NodeType;
+        console.log("[NodeEditor] Fallback to global state, type:", type);
       }
 
-      if (!type || !reactFlowWrapper.current) return;
+      if (!type) {
+        console.log("[NodeEditor] ERROR: No type found, aborting");
+        return;
+      }
+
+      if (!reactFlowWrapper.current) {
+        console.log("[NodeEditor] ERROR: No reactFlowWrapper.current, aborting");
+        return;
+      }
 
       const bounds = reactFlowWrapper.current.getBoundingClientRect();
       const position = {
         x: event.clientX - bounds.left,
         y: event.clientY - bounds.top,
       };
+      console.log("[NodeEditor] Calculated position:", position);
+      console.log("[NodeEditor] Calling addNode with type:", type);
 
       addNode(type, position);
+      console.log("[NodeEditor] addNode called successfully");
 
       // Clear the global drag state
       setDraggedNodeType(null);

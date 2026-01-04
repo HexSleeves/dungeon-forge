@@ -93,13 +93,16 @@ export function Sidebar(): React.ReactElement {
   };
 
   const handleDragStart = (e: React.DragEvent, nodeType: NodeType) => {
+    console.log("[Sidebar] handleDragStart called with nodeType:", nodeType);
     e.dataTransfer.setData("application/dungeon-forge-node", nodeType);
     e.dataTransfer.effectAllowed = "copy";
     // Also set in global state for Tauri compatibility
     setDraggedNodeType(nodeType);
+    console.log("[Sidebar] Set dataTransfer and global state for:", nodeType);
   };
 
   const handleDragEnd = () => {
+    console.log("[Sidebar] handleDragEnd called");
     // Clear the global drag state
     setDraggedNodeType(null);
   };

@@ -379,8 +379,13 @@ export const useProjectStore = create<ProjectState>()(
     },
 
     addNode: (type: NodeType, position: Position) => {
+      console.log("[projectStore] addNode called with type:", type, "position:", position);
       const { project, activeGeneratorId } = get();
-      if (!project || !activeGeneratorId) return;
+      console.log("[projectStore] project:", !!project, "activeGeneratorId:", activeGeneratorId);
+      if (!project || !activeGeneratorId) {
+        console.log("[projectStore] ERROR: No project or activeGeneratorId, aborting");
+        return;
+      }
 
       get()._pushHistory(`Add node: ${type}`);
 
@@ -392,16 +397,20 @@ export const useProjectStore = create<ProjectState>()(
         data: getDefaultNodeData(type),
         ...ports,
       };
+      console.log("[projectStore] Created node:", node);
 
       set((state) => {
         const generator = state.project?.generators.find(
           (g) => g.id === activeGeneratorId,
         );
+        console.log("[projectStore] Found generator:", !!generator);
         if (generator) {
           generator.graph.nodes.push(node);
+          console.log("[projectStore] Pushed node to graph, total nodes:", generator.graph.nodes.length);
         }
       });
       get()._markDirty();
+      console.log("[projectStore] addNode completed");
     },
 
     updateNode: (id: string, data: Partial<GraphNode["data"]>) => {

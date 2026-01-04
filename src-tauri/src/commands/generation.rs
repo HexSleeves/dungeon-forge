@@ -13,6 +13,16 @@ use tauri::command;
 
 #[command]
 pub fn generate_once(request: GenerationRequest) -> Result<GenerationResult, String> {
+    println!("[Rust] generate_once called");
+    println!("[Rust] seed: {}", request.seed);
+    println!("[Rust] generator_id: {}", request.generator_id);
+    println!("[Rust] has generator: {}", request.generator.is_some());
+    if let Some(ref gen) = request.generator {
+        println!("[Rust] generator name: {}", gen.name);
+        println!("[Rust] graph nodes: {}", gen.graph.nodes.len());
+        println!("[Rust] graph edges: {}", gen.graph.edges.len());
+    }
+    
     let start = Instant::now();
 
     // If we have a generator with a graph, use the graph executor

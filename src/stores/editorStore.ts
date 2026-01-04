@@ -6,10 +6,12 @@ import type { NodeType } from "../types";
 let draggedNodeType: NodeType | null = null;
 
 export function setDraggedNodeType(type: NodeType | null) {
+  console.log("[editorStore] setDraggedNodeType:", type);
   draggedNodeType = type;
 }
 
 export function getDraggedNodeType(): NodeType | null {
+  console.log("[editorStore] getDraggedNodeType called, returning:", draggedNodeType);
   return draggedNodeType;
 }
 
